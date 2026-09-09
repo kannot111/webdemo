@@ -44,3 +44,21 @@ git push
 ```bash
 npm run deploy:check   # build th∆∞·ªùng + build static export + sanity generators
 ```
+
+---
+
+## C?p nh?t: d„ thÍm phuong ·n GitHub Pages (dang d˘ng)
+
+Repo build **th‡nh cÙng trÍn Linux thu?n** (GitHub Actions: Node 22, th?m chÌ c?
+gi? l?p `npm ci --ignore-scripts` + `NODE_ENV=production` ó xem branch `debug-logs`).
+N?u deployment trÍn Vercel v?n fail, nguyÍn nh‚n n?m ? c?u hÏnh project trÍn dashboard:
+
+1. Xem log chi ti?t: `npx vercel inspect <deployment-id> --logs` (c?n `npx vercel login`).
+2. Project Settings: Root Directory d? tr?ng, Build Command d? tr?ng (m?c d?nh), Node 22.x.
+3. C·ch nhanh nh?t: xo· project `webdemo` trÍn vercel.com r?i import l?i t? d?u.
+
+GitHub Pages d„ b?t t? d?ng qua `.github/workflows/deploy-pages.yml`:
+
+- URL live: https://kannot111.github.io/webdemo/
+- M?i push lÍn `main` t? build static export (`STATIC_EXPORT=1`, `BASE_PATH=/webdemo`) v‡ deploy.
+- N?u l?n d?u chua th?y trang: **Settings ? Pages ? Source = GitHub Actions**.

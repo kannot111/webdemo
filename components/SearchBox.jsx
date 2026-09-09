@@ -14,7 +14,8 @@ let indexPromise = null;
 
 function loadIndex() {
   if (!indexPromise) {
-    indexPromise = fetch('/search/index.json')
+    // NEXT_PUBLIC_BASE_PATH do next.config.mjs đặt lúc build (GitHub Pages cần /<repo>).
+    indexPromise = fetch(`${process.env.NEXT_PUBLIC_BASE_PATH}/search/index.json`)
       .then((r) => (r.ok ? r.json() : null))
       .catch(() => null);
   }

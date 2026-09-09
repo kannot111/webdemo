@@ -16,14 +16,31 @@ page.on('console', (m) => logs.push(`[${m.type()}] ${m.text().slice(0, 300)}`));
 page.on('pageerror', (e) => logs.push(`[pageerror] ${e.message.slice(0, 300)}`));
 page.on('requestfailed', (r) => logs.push(`[reqfail] ${r.url().slice(-80)} ${r.failure()?.errorText}`));
 
+const BASE = process.argv[2] || 'http://localhost:3000';
+
 for (const slug of ['qhd-tren-cay', 'de-quy-quay-lui', 'dsu']) {
   logs.length = 0;
-  await page.goto(`http://localhost:3000/algorithms/${slug}`, { waitUntil: 'networkidle0' });
-  await page.evaluate(() => {
-    const btn = [...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Chạy');
-    btn?.click();
-  });
-  await new Promise((r) => setTimeout(r, 2500));
+  await page.goto(`${BASE}/algorithms/${slug}/`, { waitUntil: 'networkidle0' });
+  // Hydration có thể chưa xong khi click → thử lại vài lần trước khi kết luận.
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    await page.evaluate(() => {
+      const btn = [...document.querySelectorAll('button')].find((b) => b.textContent.trim() === 'Chạy');
+      btn?.click();
+    });
+    await new Promise((r) => setTimeout(r, 2500));
+
+    // Dừng sớm nếu đã có canvas được tô.
+    const any = await page.evaluate(() =>
+      [...document.querySelectorAll('canvas')].some((c) => {
+        try {
+          const d = c.getContext('2d').getImageData(0, 0, c.width, 200).data;
+          for (let i = 3; i < d.length; i += 40) if (d[i] > 0) return true;
+        } catch {}
+        return false;
+      }),
+    );
+    if (any) break;
+  }
 
   const info = await page.evaluate(() => {
     const frames = [...document.querySelectorAll('div')].filter((d) => d.className && String(d.className).includes('frame'));
