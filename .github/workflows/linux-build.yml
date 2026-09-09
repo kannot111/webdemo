@@ -3,6 +3,8 @@ name: linux-build
 # Tái hiện môi trường Linux giống Vercel để bắt lỗi build thật.
 # Log build được đẩy lên branch debug-logs để đọc trực tiếp.
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -30,12 +32,12 @@ jobs:
             echo "ci-exit=$?"
           } > /tmp/build.log 2>&1
 
-      - name: Build production (mô phỏng env Vercel)
+      - name: Build static export (nhân bản đúng bước Pages)
         run: |
           {
-            echo "=== npm run build với NODE_ENV=production VERCEL=1 ==="
-            NODE_ENV=production VERCEL=1 npm run build 2>&1
-            echo "build-exit=$?"
+            echo "=== npm run build:static với BASE_PATH=/webdemo ==="
+            BASE_PATH=/webdemo npm run build:static 2>&1
+            echo "static-exit=$?"
           } >> /tmp/build.log 2>&1 || true
 
       - name: Đẩy log lên branch debug-logs
