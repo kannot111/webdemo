@@ -3,8 +3,6 @@ name: linux-build
 # Tái hiện môi trường Linux giống Vercel để bắt lỗi build thật.
 # Log build được đẩy lên branch debug-logs để đọc trực tiếp.
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
