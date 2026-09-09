@@ -1,0 +1,67 @@
+=== node/npm ===
+v22.23.2
+10.9.8
+=== npm ci --ignore-scripts (mô phỏng allowScripts của Vercel) ===
+npm warn deprecated boolean@3.2.0: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
+
+added 253 packages, and audited 254 packages in 11s
+
+145 packages are looking for funding
+  run `npm fund` for details
+
+7 vulnerabilities (1 moderate, 6 high)
+
+To address all issues possible (including breaking changes), run:
+  npm audit fix --force
+
+Some issues need review, and may require choosing
+a different dependency.
+
+Run `npm audit` for details.
+ci-exit=0
+=== npm run build:static với BASE_PATH=/webdemo ===
+
+> so-tay-thuat-toan@0.1.0 build:static
+> cross-env STATIC_EXPORT=1 next build
+
+⚠ No build cache found. Please configure build caching for faster rebuilds. Read more: https://nextjs.org/docs/messages/no-cache
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+   ▲ Next.js 15.5.25
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 7.1s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/39) ...
+   Generating static pages (9/39) 
+   Generating static pages (19/39) 
+   Generating static pages (29/39) 
+ ✓ Generating static pages (39/39)
+   Finalizing page optimization ...
+   Collecting build traces ...
+   Exporting (0/2) ...
+ ✓ Exporting (2/2)
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    2.67 kB         109 kB
+├ ○ /_not-found                            123 B         103 kB
+├ ● /algorithms/[slug]                   20.4 kB         127 kB
+├   ├ /algorithms/bieu-dien-do-thi
+├   ├ /algorithms/binary-search
+├   ├ /algorithms/bubble-sort
+├   └ [+31 more paths]
+└ ○ /icon.svg                                0 B            0 B
++ First Load JS shared by all             103 kB
+  ├ chunks/255-0c7d317b5966c824.js       46.6 kB
+  ├ chunks/4bd1b696-c023c6e3521b1417.js  54.2 kB
+  └ other shared chunks (total)          1.99 kB
+
+
+○  (Static)  prerendered as static content
+●  (SSG)     prerendered as static HTML (uses generateStaticParams)
+
+static-exit=0
