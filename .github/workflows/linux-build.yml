@@ -21,22 +21,22 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Cài dependencies
+      - name: Cài dependencies (mô phỏng Vercel chặn install scripts)
         run: |
           {
             echo "=== node/npm ==="
             node -v
             npm -v
-            echo "=== npm ci ==="
-            npm ci 2>&1
+            echo "=== npm ci --ignore-scripts (mô phỏng allowScripts của Vercel) ==="
+            npm ci --ignore-scripts 2>&1
             echo "ci-exit=$?"
           } > /tmp/build.log 2>&1
 
-      - name: Build production
+      - name: Build production (mô phỏng env Vercel)
         run: |
           {
-            echo "=== npm run build ==="
-            npm run build 2>&1
+            echo "=== npm run build với NODE_ENV=production VERCEL=1 ==="
+            NODE_ENV=production VERCEL=1 npm run build 2>&1
             echo "build-exit=$?"
           } >> /tmp/build.log 2>&1 || true
 
