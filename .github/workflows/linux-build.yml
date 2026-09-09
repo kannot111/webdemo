@@ -1,0 +1,58 @@
+name: linux-build
+
+# Tái hiện môi trường Linux giống Vercel để bắt lỗi build thật.
+# Log build được đẩy lên branch debug-logs để đọc trực tiếp.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Cài dependencies
+        run: |
+          {
+            echo "=== node/npm ==="
+            node -v
+            npm -v
+            echo "=== npm ci ==="
+            npm ci 2>&1
+            echo "ci-exit=$?"
+          } > /tmp/build.log 2>&1
+
+      - name: Build production
+        run: |
+          {
+            echo "=== npm run build ==="
+            npm run build 2>&1
+            echo "build-exit=$?"
+          } >> /tmp/build.log 2>&1 || true
+
+      - name: Đẩy log lên branch debug-logs
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p /tmp/logrepo
+          cd /tmp/logrepo
+          git init -q
+          git config user.name ci-bot
+          git config user.email ci-bot@users.noreply.github.com
+          git remote add origin "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          cp /tmp/build.log build-log.txt
+          git add build-log.txt
+          git commit -qm "build log ${{ github.sha }}"
+          git branch -M debug-logs
+          git push -q origin debug-logs --force
