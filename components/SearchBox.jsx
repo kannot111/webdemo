@@ -23,8 +23,11 @@ function loadIndex() {
 
 function loadExtractor() {
   if (!extractorPromise) {
-    extractorPromise = import('@huggingface/transformers').then((mod) =>
-      mod.pipeline('feature-extraction', 'Xenova/multilingual-e5-small', { dtype: 'q8' })
+    // Tải transformers.js từ CDN ngay lúc chạy trong trình duyệt — không đóng
+    // gói vào build (webpackIgnore) để bundle không kéo theo onnxruntime-node/
+    // sharp (binary native bị chặn install script trên Vercel → build fail).
+    extractorPromise = import(/* webpackIgnore: true */ 'https://esm.sh/@huggingface/transformers@3.8.1').then(
+      (mod) => mod.pipeline('feature-extraction', 'Xenova/multilingual-e5-small', { dtype: 'q8' }),
     );
   }
   return extractorPromise;
