@@ -1,0 +1,100 @@
+---
+title: Cú pháp C++ nâng cao
+category: Kỹ năng ngôn ngữ & Nền tảng
+description: Bộ công cụ C++ cho thi — vector, pair, map/set, sort với comparator, memset và những cạm bẫy thường gặp khi viết code thi đấu.
+---
+
+## Định nghĩa
+
+Các cấu trúc ngôn ngữ/C++ dùng **mỗi ngày** trong thi nhưng nếu không nắm chắc
+sẽ mất điểm ở những chỗ ngớ ngẩn: `vector` (mảng động), `pair`/`tuple`,
+`map`/`set` (cây đỏ-đen tự cân bằng), `sort` + comparator, `max_element`,
+`accumulate`.
+
+## Ý tưởng — bảng cheat cần thuộc
+
+| Công cụ | Cú pháp | Ghi nhớ |
+| ------- | ------- | ------- |
+| vector | `vector<int> a(n, 0)` | Chỉ số 0-based; `a.push_back(x)` O(1) khấu hao |
+| pair | `pair<int,int> p = {3, 7}` | Sắp xếp mặc định: first rồi second |
+| sort | `sort(v.begin(), v.end(), cmp)` | `cmp(a, b)` trả true nếu a đứng TRƯỚC |
+| map | `map<string,int> cnt` | Truy vấn O(log n); key tự sắp tăng |
+| set | `set<int> s` | Không phần tử trùng; `lower_bound` O(log n) |
+| priority_queue | max-heap mặc định | min-heap: `greater<>` |
+
+```text
+// Comparator "điểm giảm dần, bằng điểm thì id tăng":
+cmp = [](const P& a, const P& b) {
+    if (a.score != b.score) return a.score > b.score;   // điểm giảm
+    return a.id < b.id;                                  // id tăng
+};
+```
+
+Ba cạm bẫy kinh điển:
+
+1. **`endl` chậm**: mỗi lần xả buffer — trong thi dùng `"\n"` + `ios::sync_with_stdio(false)`.
+2. **`size()` kiểu unsigned**: `v.size() - 1` với vector rỗng là số lớn khổng
+   lồ ⇒ lỗi lúc chạy. Ép `(int)v.size()`.
+3. **Tràn int**: `1 << 31` âm; tổng 10⁵ số × 10⁹ vượt int — dùng `long long`,
+   `(1LL << 40)`.
+
+## Kết quả (Output)
+
+Bài này không cần visualizer — nó là "vũ khí" cho các bài khác: toàn bộ
+generator ở các bài khác của site chạy trên chính những cấu trúc
+`vector`/`map` này. Kiểm tra độ phức tạp của thao tác đã dùng là thói quen
+đúng: `sort` O(n log n), `map` O(log n) mỗi thao tác, duyệt vector O(n) —
+xem bài Phân tích độ phức tạp để ghép thành dự đoán TLE.
+
+## Code mẫu
+
+Mẫu main "thi đấu" chuẩn + vài thao tác thường dùng:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    cin >> n;
+    vector<long long> a(n);
+    for (auto& x : a) cin >> x;
+
+    sort(a.begin(), a.end());                       // O(n log n)
+    long long sum = accumulate(a.begin(), a.end(), 0LL);
+    auto mx = max_element(a.begin(), a.end());      // con trỏ tới max
+
+    map<string, int> cnt;                           // đếm từ
+    cnt["a"]++;
+
+    set<pair<long long, long long>> pts;            // toạ độ không trùng
+    pts.insert({3, 7});
+
+    cout << sum << ' ' << *mx << ' ' << pts.size() << '\n';
+    return 0;
+}
+```
+
+```python
+a = list(map(int, input().split()))
+a.sort()
+from collections import Counter
+cnt = Counter("aabb")
+print(sum(a), max(a), cnt)
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [I/O Speedup](https://cses.fi/problemset/task/1621) | CSES | Đọc nhanh + set |
+| [Playlist](https://cses.fi/problemset/task/1141) | CSES | map + cửa sổ trượt |
+| [Aggregate](https://cses.fi/problemset/task/1621) | CSES | Đếm phần tử distinct |
+
+## Đọc thêm
+
+- Kết hợp với bài [Struct](/algorithms/struct) và [Con trỏ](/algorithms/con-tro)
+  của site để nắm tầng dưới của các container này.

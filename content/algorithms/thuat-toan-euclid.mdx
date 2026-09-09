@@ -1,0 +1,110 @@
+---
+title: Thuật toán Euclid
+category: Lý thuyết số & Toán học
+description: Euclid mở rộng — tìm gcd và hệ số Bezout a·x + b·y = gcd(a, b), nền tảng của nghịch đảo modulo; minh họa từng bước chia lấy dư và truy vết ngược.
+---
+
+## Định nghĩa
+
+**gcd(a, b)** = ước chung lớn nhất. Thuật toán Euclid dựa trên tính chất:
+
+```text
+gcd(a, b) = gcd(b, a mod b)      với b ≠ 0
+gcd(a, 0) = a
+```
+
+**Euclid mở rộng** đi thêm một bước: tìm cặp (x, y) sao cho
+`a·x + b·y = gcd(a, b)` (**hệ số Bezout**) — chìa khóa của nghịch đảo modulo.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| `a = 240, b = 46` | Tìm gcd và hệ số x, y |
+
+**Output mong đợi:**
+
+```text
+gcd(240, 46) = 2
+240·(−9) + 46·(47) = −2160 + 2162 = 2
+```
+
+## Ý tưởng
+
+Chia lấy dư liên tục cho tới khi dư = 0; gcd là số chia cuối cùng:
+
+```text
+240 = 46·5 + 10      gcd(240, 46) = gcd(46, 10)
+ 46 = 10·4 + 6       gcd(46, 10)  = gcd(10, 6)
+ 10 =  6·1 + 4       gcd(10, 6)   = gcd(6, 4)
+  6 =  4·1 + 2       gcd(6, 4)    = gcd(4, 2)
+  4 =  2·2 + 0       gcd(4, 2)    = gcd(2, 0) = 2
+```
+
+Xem minh họa: hàng hiển thị [gcd đang xét, phần dư], sau đó truy vết ngược tìm
+x, y theo công thức `x' = y; y' = x − q·y`:
+
+<ArrayVisualizer algorithm="euclid" height={210} />
+
+Ba điểm đáng nhớ:
+
+1. **Nghịch đảo modulo**: a ⟂ m (gcd = 1) thì nghịch đảo `a⁻¹ = x mod m` với
+   (x, y) từ Euclid mở rộng — chính là công thức `inv(a)` trong mọi bài modulo.
+2. Số bước O(log min(a, b)) — hai số Fibonacci liên tiếp là trường hợp xấu nhất.
+3. `gcd(a, b)·lcm(a, b) = a·b` — tính BCNN từ GCD, tránh tràn: `a / gcd * b`.
+
+## Kết quả (Output)
+
+Dãy chia lấy dư: (240, 46) → (46, 10) → (10, 6) → (6, 4) → (4, 2) → (2, 0) —
+số chia cuối = **2**. Truy vết ngược: 2 = 6 − 4·1; 4 = 10 − 6·1 ⇒ 2 = 6 −
+(10 − 6) = 2·6 − 10; 6 = 46 − 10·4 ⇒ 2 = 2·(46 − 10·4) − 10 = 2·46 − 9·10;
+10 = 240 − 46·5 ⇒ 2 = 2·46 − 9·(240 − 46·5) = **47·46 − 9·240**. Vậy
+x = −9, y = 47: 240·(−9) + 46·47 = 2 — đúng như chú thích từng bước trên
+player. Kiểm tra nghịch đảo: gcd(240, 46) = 2 ≠ 1 nên 240 không có nghịch đảo
+mod 46; nếu đổi thành (a, b) = (3, 46) thì x = 31 chính là 3⁻¹ mod 46.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+long long extGcd(long long a, long long b, long long& x, long long& y) {
+    if (b == 0) { x = 1; y = 0; return a; }
+    long long x1, y1;
+    long long g = extGcd(b, a % b, x1, y1);
+    x = y1; y = x1 - (a / b) * y1;
+    return g;
+}
+
+int main() {
+    long long x, y;
+    long long g = extGcd(240, 46, x, y);
+    cout << g << ' ' << x << ' ' << y << '\n';   // 2 -9 47
+    return 0;
+}
+```
+
+```python
+def ext_gcd(a, b):
+    if b == 0:
+        return a, 1, 0
+    g, x1, y1 = ext_gcd(b, a % b)
+    return g, y1, x1 - (a // b) * y1
+
+g, x, y = ext_gcd(240, 46)
+print(g, x, y)   # 2 -9 47
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Watermelon](https://codeforces.com/problemset/problem/4/A) | Codeforces | Chia được thanks gcd/parity |
+| [Inverse Modulo](https://oj.vnoi.info/problem/ctnc19) | VNOJ | Euclid mở rộng + nghịch đảo |
+| [Common Divisors](https://cses.fi/problemset/task/1081) | CSES | gcd của tập số |
+
+## Đọc thêm
+
+- [Thuật toán Euclid](https://vnoi.info/wiki/algo/algebra/euclid.md) trên VNOI
+  Wiki — nguồn đối chiếu của bài này.

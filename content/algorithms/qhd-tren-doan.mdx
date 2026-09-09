@@ -1,0 +1,115 @@
+---
+title: DP trên đoạn
+category: Quy hoạch động
+description: QHD trên đoạn — bài nhân ma trận dây chuyền, đoạn dài tăng dần với điểm tách k; minh họa từng ô dp[i][j] được tính từ các đoạn con ngắn hơn.
+---
+
+## Định nghĩa
+
+**QHD trên đoạn (Interval DP)**: `dp[i][j]` = đáp án tối ưu cho đoạn `[i..j]`,
+tính bằng cách **tách đoạn** tại điểm k:
+
+```text
+dp[i][j] = min/max( dp[i][k] + dp[k+1][j] + cost(i, j, k) )   với i ≤ k < j
+```
+
+Duyệt **theo độ dài đoạn tăng dần** đảm bảo mọi đoạn con cần cho dp[i][j] đã có
+sẵn. Bài kinh điển: **nhân ma trận dây chuyền** — tính tích A₁A₂...Aₙ theo thứ
+tự nào để số phép nhân ít nhất.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Kích thước ma trận `[10, 30, 5, 60, 20]` | A₁: 10×30, A₂: 30×5, A₃: 5×60, A₄: 60×20 |
+
+**Output mong đợi:**
+
+```text
+Số phép nhân ít nhất = 8500
+Cách tối ưu: (A₁A₂) rồi (A₃A₄), sau đó nhân hai kết quả
+1500 + 6000 + 10·5·20 = 8500
+(đối chiếu: cách "trái sang phải" tốn 16500 — gần gấp đôi)
+```
+
+## Ý tưởng
+
+Chi phí nhân ma trận (p×q)·(q×r) là p·q·r. Gọi `dp[i][j]` = số nhân ít nhất
+cho tích A(i+1)...A(j+1) (đoạn ma trận i..j theo chỉ số kích thước):
+
+```text
+dp[i][j] = min( dp[i][k] + dp[k+1][j] + dims[i]·dims[k+1]·dims[j+1] )
+```
+
+Duyệt độ dài đoạn 2 → n:
+
+<MatrixVisualizer algorithm="intervalDp" height={260} />
+
+Ba điểm đáng nhớ:
+
+1. **Thứ tự duyệt theo độ dài** là linh hồn: khác với QHD mảng (chạy i tăng dần),
+   interval DP cần đoạn con ngắn hơn có trước.
+2. **Dấu ngoặc tối ưu**: muốn in cách đặt ngoặc cần lưu điểm tách `opt[i][j] = k`
+   rồi truy vết đệ quy.
+3. Cùng khung: bài "cắt quec" (tọa độ cắt + 2 đầu mút), "cân đối xâu"
+   ( Burst Balloons), Knuth với tối ưu quadrangle inequality.
+
+## Kết quả (Output)
+
+Ô góc `dp[0][3] = 8500`. Đọc các bước tách trên player: đoạn dài 2 cho
+dp[0][1] = 10·30·5 = 1500, dp[1][2] = 30·5·60 = 9000, dp[2][3] = 5·60·20 = 6000;
+đoạn dài 3 cho dp[0][2] = 4500 (tách tại k=0) và dp[1][3] = 9000; đoạn dài 4
+(dp[0][3]) thử 3 điểm tách: k=0 ⇒ 0 + 9000 + 10·30·20 = 15000; k=1 ⇒
+1500 + 6000 + 10·5·20 = **8500**; k=2 ⇒ 4500 + 0 + 10·60·20 = 16500. Min =
+**8500** với cách (A₁A₂)(A₃A₄). Đối chiếu cách "trái sang phải" (A₁A₂)A₃)A₄ =
+1500 + 10·5·60 + 10·60·20 = 16500 — gấp gần đôi. Trực quan: ô cuối là min của
+các cách tách, mỗi cách tách ghép hai ô đã tối ưu bên dưới — nhờ vậy không bỏ
+lọt tổ hợp nào.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    vector<long long> dims = {10, 30, 5, 60, 20};
+    int n = dims.size() - 1;                       // 4 ma trận
+    vector<vector<long long>> dp(n, vector<long long>(n, 0));
+    for (int len = 2; len <= n; len++)
+        for (int i = 0; i + len - 1 < n; i++) {
+            int j = i + len - 1;
+            dp[i][j] = LLONG_MAX;
+            for (int k = i; k < j; k++)
+                dp[i][j] = min(dp[i][j],
+                    dp[i][k] + dp[k + 1][j] + dims[i] * dims[k + 1] * dims[j + 1]);
+        }
+    cout << dp[0][n - 1] << '\n';                  // 8500
+    return 0;
+}
+```
+
+```python
+dims = [10, 30, 5, 60, 20]
+n = len(dims) - 1
+dp = [[0] * n for _ in range(n)]
+for length in range(2, n + 1):
+    for i in range(n - length + 1):
+        j = i + length - 1
+        dp[i][j] = min(dp[i][k] + dp[k + 1][j] + dims[i] * dims[k + 1] * dims[j + 1]
+                       for k in range(i, j))
+print(dp[0][n - 1])   # 8500
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Matrix Chain Order](https://cses.fi/problemset/) | CSES | Khung interval DP |
+| [Burst Balloons](https://leetcode.com/problems/burst-balloons/) | LeetCode | Đoạn + điểm tách |
+| [Cutting a Stick](https://cses.fi/problemset/task/1740) | CSES | Cắt quec interval DP |
+
+## Đọc thêm
+
+- [Quy hoạch động trên đoạn](https://vnoi.info/wiki/algo/dp/Mot-so-ky-thuat-toi-uu-hoa-thuat-toan-Quy-Hoach-Dong.md)
+  trên VNOI Wiki — nguồn đối chiếu của bài này, có tối ưu Knuth.

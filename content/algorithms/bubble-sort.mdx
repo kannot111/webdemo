@@ -1,0 +1,151 @@
+---
+title: Sắp xếp nổi bọt
+category: Sắp xếp
+description: Bubble Sort — so sánh từng cặp phần tử kề nhau và hoán đổi nếu sai thứ tự, minh họa trực quan từng bước.
+---
+
+## Định nghĩa
+
+Sắp xếp nổi bọt (Bubble Sort) là thuật toán sắp xếp đơn giản nhất trong các giải pháp sắp
+xếp dựa trên so sánh. Thuật toán làm việc trên dãy `a[0..n-1]`: nó đi qua dãy nhiều vòng,
+mỗi vòng so sánh từng cặp phần tử kề nhau và hoán đổi nếu chúng sai thứ tự.
+
+Tên gọi "nổi bọt" đến từ hình ảnh các phần tử lớn dần được đẩy về cuối dãy sau mỗi vòng,
+giống bọt khí nổi dần lên mặt nước.
+
+Đây không phải thuật toán nhanh, nhưng nhờ dễ cài đặt và dễ chứng minh tính đúng đắn,
+nó là bước khởi đầu chuẩn mực khi học chủ đề sắp xếp và phân tích độ phức tạp.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Mảng `[29, 10, 14, 37, 13, 25, 5]` | Sắp tăng dần bằng 3 thuật toán sắp xếp cơ bản |
+
+**Output mong đợi:**
+
+```text
+5 10 13 14 25 29 37
+```
+
+## Ý tưởng
+
+Quan sát cốt lõi: nếu trong một vòng duyệt ta liên tục so sánh hai phần tử kề nhau và
+hoán đổi khi phần tử đứng trước lớn hơn phần tử đứng sau, thì sau khi đi hết dãy, phần tử
+lớn nhất sẽ được "đẩy" về đúng vị trí cuối cùng. Vòng tiếp theo chỉ cần làm điều đó trên
+phần dãy còn lại, và cứ thế thu hẹp dần.
+
+Xem minh họa dưới đây: mỗi vòng, bạn sẽ thấy một cột mới chuyển sang màu nhạt hơn — đó là
+phần tử vừa chốt vị trí, và phần còn lại của dãy được rút ngắn đi.
+
+<ArrayVisualizer algorithm="bubbleSort" height={280} />
+
+Ba chi tiết đáng chú ý khi xem:
+
+1. Cặp phần tử đang so sánh tô đậm màu xanh; nếu chúng hoán đổi, hiệu ứng chuyển sang
+   tông xanh nhạt hơn một bậc.
+2. Sau mỗi vòng, một phần tử được chốt và không bao giờ bị xét lại — đây là bất biến
+   (invariant) giúp chứng minh thuật toán đúng.
+3. Nếu một vòng duyệt trôi qua mà không có lần hoán đổi nào, dãy đã có thứ tự và thuật
+   toán dừng sớm. Trên dãy đã sắp sẵn, đây là trường hợp chạy nhanh nhất.
+
+Cách cài đặt phổ biến dùng cờ `swapped` như sau:
+
+```text
+lặp với i từ 0 đến n - 2:
+    swapped = false
+    lặp với j từ 0 đến n - 2 - i:
+        nếu a[j] > a[j + 1]: hoán đổi a[j] và a[j + 1], swapped = true
+    nếu swapped = false: dừng — dãy đã có thứ tự
+```
+
+Giới hạn `n - 2 - i` ở vòng trong chính là phần "thu hẹp dãy": `i` phần tử cuối đã đúng
+vị trí sau `i` vòng đầu tiên.
+
+## Độ phức tạp
+
+Gọi `n` là số phần tử của dãy. Vòng ngoài chạy `n - 1` lần, vòng trong chạy nhiều nhất
+`n - 1 - i` lần, nên tổng số phép so sánh ở trường hợp xấu nhất là
+`(n-1) + (n-2) + ... + 1 = n(n-1)/2`.
+
+| Trường hợp           | Thời gian | Khi nào                                              |
+| -------------------- | --------- | ---------------------------------------------------- |
+| Tốt nhất             | O(n)      | Dãy đã sắp sẵn — dừng ngay sau vòng đầu nhờ `swapped` |
+| Trung bình           | O(n²)     | Dãy sắp ngẫu nhiên                                    |
+| Xấu nhất             | O(n²)     | Dãy sắp ngược — mọi cặp đều phải hoán đổi             |
+
+- **Bộ nhớ phụ:** O(1) — chỉ dùng vài biến tạm, sắp xếp tại chỗ (in-place).
+- **Tính ổn định (stable):** có. Hai phần tử bằng nhau không bao giờ được hoán đổi với
+  nhau, nên thứ tự tương đối ban đầu của chúng được giữ nguyên — tính chất quan trọng
+  khi sắp xếp theo nhiều khóa.
+
+## Kết quả (Output)
+
+Sau mỗi vòng lặp, phần tử nhỏ nhất còn lại "nổi" về đầu đoạn chưa sắp (các ô
+xanh nhạt là phần đã đúng vị trí). Số phép so sánh luôn n(n−1)/2 = 21 với n = 7
+— đúng bất kể mảng đầu vào. Output cuối `5 10 13 14 25 29 37` — đối chiếu
+visualizer: ô cuối cùng bên trái sáng dần theo từng vòng, đến vòng n−1 toàn bộ
+đã sắp.
+
+## Code mẫu
+
+Cài đặt C++ với cờ dừng sớm:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    vector<int> a(n);
+    for (int &x : a) cin >> x;
+
+    for (int i = 0; i < n - 1; i++) {
+        bool swapped = false;
+        for (int j = 0; j + 1 < n - i; j++) {
+            if (a[j] > a[j + 1]) {
+                swap(a[j], a[j + 1]);
+                swapped = true;
+            }
+        }
+        if (!swapped) break; // dãy đã có thứ tự, dừng sớm
+    }
+
+    for (int x : a) cout << x << ' ';
+    cout << '\n';
+    return 0;
+}
+```
+
+Cùng thuật toán viết bằng Python:
+
+```python
+def bubble_sort(a):
+    n = len(a)
+    for i in range(n - 1):
+        swapped = False
+        for j in range(n - 1 - i):
+            if a[j] > a[j + 1]:
+                a[j], a[j + 1] = a[j + 1], a[j]
+                swapped = True
+        if not swapped:
+            break
+    return a
+
+
+n = int(input())
+a = list(map(int, input().split()))
+print(*bubble_sort(a))
+```
+
+## Bài tập luyện tập
+
+> Đường dẫn dưới đây đang là placeholder. Link tới bài tập thật trên VNOJ / Codeforces
+> sẽ được bổ sung sau khi chốt danh sách bài.
+
+| Bài tập | Chủ đề rèn luyện | Link |
+| ------- | ---------------- | ---- |
+| Sắp xếp dãy số cơ bản | Cài đặt Bubble Sort đúng và hiệu quả trong giới hạn thời gian | *(placeholder — điền link VNOJ)* |
+| Đếm số lần hoán đổi | Vòng hoán đổi của Bubble Sort chính là số nghịch thế của dãy | *(placeholder — điền link VNOJ)* |
+| Sắp xếp với giới hạn chặt | Nhận ra khi nào Bubble Sort không đủ nhanh và cần thuật toán O(n log n) | *(placeholder — điền link Codeforces)* |

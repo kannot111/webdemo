@@ -1,0 +1,97 @@
+.page {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.head {
+  border-bottom: 2px solid var(--text);
+  padding-bottom: 18px;
+  margin-bottom: 32px;
+}
+
+.category {
+  font-size: 0.86rem;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.title {
+  font-size: 2rem;
+}
+
+/* Prose: lý thuyết xếp tầng, phân tách bằng đường kẻ ngang, không dùng card. */
+.prose > * + * {
+  margin-top: 1em;
+}
+
+.prose h2 {
+  font-size: 1.35rem;
+  margin-top: 2.4em;
+  padding-top: 4px;
+  border-top: 1px solid var(--border);
+}
+
+.prose h3 {
+  font-size: 1.08rem;
+  margin-top: 1.8em;
+}
+
+.prose p {
+  color: var(--text);
+}
+
+.prose ul,
+.prose ol {
+  padding-left: 1.4em;
+}
+
+.prose li + li {
+  margin-top: 0.35em;
+}
+
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+  margin-top: 1.2em;
+}
+
+.prose th {
+  text-align: left;
+  font-weight: 650;
+  color: var(--text-soft);
+  border-bottom: 2px solid var(--border-strong);
+  padding: 8px 14px 8px 0;
+}
+
+.prose td {
+  border-bottom: 1px solid var(--border);
+  padding: 8px 14px 8px 0;
+  vertical-align: top;
+}
+
+.prose td:first-child,
+.prose th:first-child {
+  padding-left: 0;
+}
+
+.prose blockquote {
+  border-left: 2px solid var(--accent);
+  background: var(--accent-faint);
+  border-radius: 0 6px 6px 0;
+  padding: 10px 16px;
+  margin-top: 1.2em;
+  font-size: 0.92rem;
+  color: var(--text-soft);
+}
+
+.prose blockquote p {
+  color: inherit;
+}
+
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin-top: 2em;
+}

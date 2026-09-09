@@ -1,0 +1,121 @@
+---
+title: Stack, Queue, Deque
+category: Cấu trúc dữ liệu
+description: Ba cấu trúc tuyến tính nền tảng — stack LIFO, queue FIFO, deque hai đầu; minh họa cắm/lấy từng bước và các bài kinh điển.
+---
+
+## Định nghĩa
+
+Ba cấu trúc "đi vào ra" với quy tắc khác nhau:
+
+| Cấu trúc | Quy tắc | Thao tác | Ẩn dụ |
+| -------- | ------- | -------- | ----- |
+| **Stack** | LIFO — vào sau ra trước | `push`, `pop`, `top` | Xấp đĩa |
+| **Queue** | FIFO — vào trước ra trước | `push`, `pop`, `front` | Xếp hàng |
+| **Deque** | Hai đầu | `push_front/back`, `pop_front/back` | Xếp hàng hai chiều |
+
+Stack là linh hồn của: đệ quy (ngăn xếp lời gọi), kiểm tra ngoặc đúng, tính
+biểu thức hậu tố, DFS khử đệ quy. Queue của BFS. Deque của cửa sổ trượt lấy
+min/max (thuật toán "deque min-max").
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Dãy ngoặc `( [ ] { } )` | Kiểm tra dãy ngoặc có cân đối không |
+| Dãy `( [ ) ]` | Dãy ngoặc SAI để đối chiếu |
+
+**Output mong đợi:**
+
+```text
+( [ ] { } )  → DUNG
+( [ ) ]      → SAI
+```
+
+## Ý tưởng
+
+Chuỗi thao tác trên stack: push 7, push 2, pop (nhận 2), push 9, top (9) —
+phần tử mới luôn đè lên đỉnh:
+
+<ArrayVisualizer algorithm="heap" height={220} />
+
+Lưu ý: minh họa trên là heap (có thêm bất biến cha ≤ con); stack thuần chỉ có
+quy tắc LIFO không so sánh. Ba bài kinh điển của stack:
+
+1. **Ngoặc đúng**: `( [ ] { } )` — gặp mở thì push, gặp đóng thì pop và kiểm
+   tra khớp loại. Cuối cùng stack phải rỗng.
+2. **Phần tử lớn hơn bên phải kế tiếp** (Next Greater Element): duyệt phải→trái
+   hoặc trái→phải, stack giữ chỉ số các phần tử đang "chờ" phần tử lớn hơn —
+   mỗi phần tử push/pop đúng 1 lần ⇒ O(n).
+3. **Hình chữ nhật lớn nhất trên histogram**: stack tăng dần chiều cao; khi
+   gặp cột thấp hơn thì pop và tính diện tích với cột vừa pop làm chiều cao.
+
+## Độ phức tạp
+
+| Cấu trúc | push | pop | truy cập "đầu" |
+| -------- | ---- | --- | -------------- |
+| Stack | O(1) | O(1) | O(1) |
+| Queue | O(1) | O(1) | O(1) |
+| Deque | O(1) hai đầu | O(1) hai đầu | O(1) |
+
+## Kết quả (Output)
+
+Với dãy `( [ ] { } )`: `(` push → `[` push → `]` gặp `pop` `[` khớp → `]`... cuối
+cùng stack rỗng ⇒ **DUNG**. Với dãy `( [ ) ]`: `(` push, `[` push, `)` pop nhưng
+đỉnh là `[` ≠ `(` ⇒ kết luận **SAI ngay lập tức** — không cần xét tiếp. Trực
+quan trên visualizer: chiều cao cột tăng khi gặp ngoặc mở, giảm khi khớp ngoặc
+đóng; nếu cột giảm về "âm" (pop khi rỗng) hoặc cuối cùng chưa về 0 là SAI.
+
+## Code mẫu
+
+Kiểm tra dãy ngoặc đúng — bài stack đầu tay:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    string s; cin >> s;
+    stack<char> st;
+    for (char c : s) {
+        if (c == '(' || c == '[' || c == '{') st.push(c);
+        else {
+            if (st.empty()) { cout << "SAI"; return 0; }
+            char o = st.top(); st.pop();
+            if ((c == ')' && o != '(') || (c == ']' && o != '[') ||
+                (c == '}' && o != '{')) { cout << "SAI"; return 0; }
+        }
+    }
+    cout << (st.empty() ? "DUNG" : "SAI");
+    return 0;
+}
+```
+
+Next Greater Element bằng stack tăng dần:
+
+```python
+def next_greater(a):
+    n = len(a)
+    res = [-1] * n
+    st = []  # stack các chỉ số, a[st] giảm dần
+    for i in range(n):
+        while st and a[st[-1]] < a[i]:
+            res[st.pop()] = a[i]
+        st.append(i)
+    return res
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Balanced Brackets](https://www.hackerrank.com/challenges/balanced-brackets/problem) | HackerRank | Stack kiểm tra ngoặc |
+| [Sliding Window Maximum](https://leetcode.com/problems/sliding-window-maximum/) | LeetCode | Deque min-max |
+| [Largest Rectangle](https://www.hackerrank.com/challenges/largest-rectangle/problem) | HackerRank | Stack trên histogram |
+| [Queue using Two Stacks](https://www.hackerrank.com/challenges/queue-using-two-stacks/problem) | HackerRank | Mô phỏng queue bằng 2 stack |
+
+## Đọc thêm
+
+- [Stack](https://vnoi.info/wiki/algo/data-structures/Stack.md) và
+  [Deque](https://vnoi.info/wiki/algo/data-structures/Deque.md) trên VNOI Wiki —
+  nguồn đối chiếu của bài này.

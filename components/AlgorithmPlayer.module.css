@@ -1,0 +1,58 @@
+.wrap {
+  margin: 0;
+}
+
+.stage {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+.caption {
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  border-left: 2px solid var(--accent);
+  padding: 2px 0 2px 12px;
+  margin-top: 12px;
+  min-height: 2.2em;
+}
+
+.track {
+  height: 3px;
+  background: var(--bg-soft);
+  border-radius: 2px;
+  margin: 14px 0;
+  overflow: hidden;
+}
+
+.trackFill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.2s ease;
+}
+
+/* Bố cục chia đôi khi generator khai báo stack: visualizer chính bên trái,
+   cột đệ quy bên phải. */
+.stageSplit {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.stageMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.stackNote {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  margin-top: 10px;
+}
+
+.stackNote strong {
+  color: var(--accent);
+  font-weight: 600;
+}

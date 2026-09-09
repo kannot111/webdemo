@@ -1,0 +1,114 @@
+---
+title: DP chữ số
+category: Quy hoạch động
+description: QHD chữ số — đếm số ≤ N có tính chất cho trước bằng cách điền từng chữ số và quản lý trạng thái "tight"; minh họa bảng trạng thái theo số dư.
+---
+
+## Định nghĩa
+
+**QHD chữ số (Digit DP)** đếm số lượng số trong đoạn [1..N] có tính chất cho
+trước (tổng chữ số chia hết cho k, chứa cặp chữ số liên tiếp..., kèm ràng buộc)
+— với N có thể **lớn bất kỳ** (10¹⁸, thậm chí 10¹⁰⁰⁰ dạng xâu).
+
+Cách làm: điền số từ chữ số cao xuống thấp, mỗi bước chọn chữ số nhỏ hơn hoặc
+bằng chữ số tương ứng của N. Trạng thái = (vị trí, thông tin gộp của tiền tố).
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| `N = 428` | Đếm số 1..428 có tổng chữ số chia hết cho 3 |
+
+**Output mong đợi:**
+
+```text
+428 / 3 ≈ 142 — đáp án chính xác do player tính ra (xem bảng)
+```
+
+## Ý tưởng
+
+Xét N = 428. Điền từng chữ số, mỗi vị trí chia nhánh:
+
+```text
+tại vị trí k, chữ số của N là d:
+    chọn chữ số < d  ⇒ các vị trí sau THẢ DO (0..9 tùy ý) — "đã tách nhánh"
+    chọn chữ số = d  ⇒ vẫn TIGHT (bám theo N)
+```
+
+Trạng thái gộp ở đây = **số dư tổng chữ số mod 3** — chỉ cần 3 giá trị, không
+phải nhớ cả tổng. Bảng dp[vị trí][dư] đếm số cách điền nhánh tự do:
+
+<MatrixVisualizer algorithm="digitDp" height={220} />
+
+Ba điểm đáng nhớ:
+
+1. **Bảng chỉ kích thước (số chữ số × mod)** — N = 10¹⁸ vẫn chỉ 19 × 3 ô. Đây
+   là sức mạnh của Digit DP: trạng thái gộp "đặc trưng" thay vì lưu số.
+2. **Nhánh tight duy nhất**: tại mỗi vị trí chỉ có 1 nhánh bám theo N; các nhánh
+   tự do được đóng gói vào bảng dp.
+3. Đoạn [L..R] = count(R) − count(L−1) — kỹ thuật "hiệu hai lần đếm".
+
+## Kết quả (Output)
+
+Với N = 428: tại vị trí chữ số đầu, các chữ số 1, 2, 3 (< 4) trở thành nhánh tự
+do; tiếp tục với 2 và 8. Cộng dồn dp[3][0] + (1 nếu 428 tự thỏa — 4+2+8=14
+không chia hết cho 3 nên không cộng). Player in ra đáp án ở chú thích bước cuối
+— số đếm khớp với công thức "khoảng 1/3 của 428" vì số dư mod 3 phân bố đều
+trên các nhánh tự do. Trực quan: mỗi hàng bảng là một vị trí chữ số, 3 cột là
+3 số dư — bảng nhỏ vậy mà trả lời câu hỏi về 428 số.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+// đếm số ≤ N có tổng chữ số chia hết cho 3
+long long count(const string& s) {
+    int n = s.size();
+    // dp[k][mod] = số số có k chữ số (chưa tight) tổng chữ số ≡ mod (mod 3)
+    vector<array<long long,3>> dp(n + 1, {0, 0, 0});
+    int prefix = 0;                       // dư của tiền tố tight
+    for (int k = 0; k < n; k++) {
+        int d = s[k] - '0';
+        for (int dig = (k == 0 ? 1 : 0); dig < d; dig++)
+            dp[k + 1][(prefix + dig) % 3]++;
+        prefix = (prefix + d) % 3;
+    }
+    long long ans = dp[n][0] + (prefix == 0 ? 1 : 0);   // +1 nếu chính N thỏa
+    return ans;
+}
+
+int main() {
+    cout << count("428") << '\n';
+    return 0;
+}
+```
+
+```python
+def count_digits(s):
+    n = len(s)
+    dp = [[0, 0, 0] for _ in range(n + 1)]
+    prefix = 0
+    for k, ch in enumerate(s):
+        d = int(ch)
+        for dig in (range(1, d) if k == 0 else range(d)):
+            dp[k + 1][(prefix + dig) % 3] += 1
+        prefix = (prefix + d) % 3
+    return dp[n][0] + (1 if prefix == 0 else 0)
+
+print(count_digits("428"))
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Counting Numbers](https://cses.fi/problemset/task/2220) | CSES | Không có cặp chữ số giống nhau liền kề |
+| [Beautiful Numbers](https://codeforces.com/problemset/problem/1265/E) | Codeforces | Digit DP + chia hết |
+| [Số may mắn](https://oj.vnoi.info/problem/lucknum) | VNOJ | Digit DP có ràng buộc |
+
+## Đọc thêm
+
+- [Quy hoạch động chữ số](https://vnoi.info/wiki/algo/dp/digit-dp.md) trên VNOI
+  Wiki — nguồn đối chiếu của bài này.

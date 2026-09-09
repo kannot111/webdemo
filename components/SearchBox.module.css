@@ -1,0 +1,133 @@
+.box {
+  margin: 36px 0 8px;
+}
+
+.form {
+  margin: 0;
+}
+
+.input {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 1.05rem;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--border-strong);
+  padding: 10px 2px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input::placeholder {
+  color: var(--text-faint);
+}
+
+.input:focus {
+  border-bottom-color: var(--accent);
+}
+
+.hintRow {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.hintLabel {
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+
+.chip {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  background: none;
+  border: 1px dashed var(--border-strong);
+  border-radius: 6px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: color 0.12s, border-color 0.12s;
+}
+
+.chip:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.note {
+  font-size: 0.84rem;
+  color: var(--text-faint);
+  margin: 14px 0 0;
+}
+
+.results {
+  list-style: none;
+  margin: 14px 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.resItem {
+  border-bottom: 1px solid var(--border);
+}
+
+.resLink,
+.resPlain {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  padding: 10px 0 10px 12px;
+  border-left: 2px solid var(--accent);
+}
+
+.resLink {
+  color: inherit;
+}
+
+.resLink:hover {
+  text-decoration: none;
+  background: var(--bg-soft);
+}
+
+.resPlain {
+  border-left-color: var(--border-strong);
+}
+
+.resName {
+  font-weight: 600;
+}
+
+.resLink:hover .resName {
+  color: var(--accent);
+}
+
+.resEn {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}
+
+.resCrumb {
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}
+
+.resScore {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+.resCta {
+  font-size: 0.78rem;
+  color: var(--accent);
+}
+
+.resMissing {
+  font-size: 0.78rem;
+  color: var(--text-faint);
+}

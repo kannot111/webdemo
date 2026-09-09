@@ -1,0 +1,127 @@
+---
+title: Quy hoạch động cơ bản
+category: Quy hoạch động
+description: QHD cơ bản — Balo 0/1 và LIS, đi từ đệ quy có nhớ sang bảng QHD; minh họa từng ô bảng được tính và truy vết đáp án.
+---
+
+## Định nghĩa
+
+**Quy hoạch động (QHD)** là kỹ thuật giải bài toán bằng cách:
+
+1. Chia bài toán thành các **trạng thái** nhỏ hơn cùng dạng.
+2. Tính mỗi trạng thái **đúng một lần**, lưu vào bảng.
+3. Ghép các trạng thái để được đáp án.
+
+Điều kiện áp dụng: bài có **cấu trúc con tối ưu** (đáp án gồm đáp án tối ưu của
+bài con) và **trạng thái con không lặp vô hạn** (bài con gối đầu nhau).
+
+Hai bài kinh điển của nhóm:
+
+- **Balo 0/1**: n món, mỗi món trọng số wᵢ giá trị vᵢ, túi tải m — chọn tập cho
+  tổng giá trị lớn nhất mà không quá tải.
+- **LIS**: dãy con tăng dài nhất của một dãy số.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Balo: 4 món `(Sách w=1 v=6)`, `(Bàn phím w=3 v=10)`, `(Camera w=4 v=12)`, `(Ổ cắm w=2 v=7)`, tải `5` | Chọn món cho tổng giá trị lớn nhất ≤ 5 |
+| LIS: `[10, 3, 12, 4, 15, 2, 18, 11, 13]` | Dãy con tăng dài nhất |
+
+**Output mong đợi:**
+
+```text
+Balo: 18 (Camera + Sách: 12 + 6, trọng số 4 + 1 = 5 ≤ 5)
+LIS : độ dài 4 → 10, 12, 15, 18
+```
+
+## Ý tưởng — bảng Balo 0/1
+
+Gọi `dp[i][j]` = giá trị lớn nhất chọn trong **i món đầu** với tải `j`. Chuyển:
+
+```text
+dp[i][j] = max( không lấy món i-1 : dp[i-1][j],
+                lấy món i-1      : dp[i-1][j-w] + v  (nếu j ≥ w) )
+```
+
+Đáp án = `dp[n][m]`. Hàng được tính lần lượt từ hàng 0 (không có món nào):
+
+<MatrixVisualizer algorithm="knapsack01" height={280} />
+
+LIS — phiên bản O(n log n): mảng "măng" `tails[k]` = giá trị cuối nhỏ nhất của
+LIS độ dài k+1; măng luôn tăng nên mỗi phần tử chỉ cần **tìm nhị phân** vị trí
+chèn:
+
+<ArrayVisualizer algorithm="lis" height={240} />
+
+Ba lỗi kinh điển:
+
+1. **Balo 0/1 lặp sai chiều**: phải duyệt tải **giảm dần** khi nén 2D→1D, nếu
+   không một món được lấy nhiều lần (thành balo vô hạn).
+2. **LIS nhầm "dãy liên tiếp"**: LIS **không** yêu cầu liên tiếp — liên tiếp là
+   bài "tổng đoạn con lớn nhất" (Kadane).
+3. **Quên truy vết**: nhiều đề đòi in đáp án chứ không chỉ độ dài — cần lưu
+   `pre[]` hoặc so sánh bảng lúc đi ngược.
+
+## Kết quả (Output)
+
+Đọc bảng balo từ trực quan: ô cuối `dp[4][5] = 18`. Truy vết ngược: `dp[4][5] =
+dp[3][5]` ⇒ **không** lấy "Ổ cắm"; `dp[3][5] = 18 ≠ dp[2][5] = 16` ⇒ lấy
+"Camera", nhảy sang tải `5 − 4 = 1`; `dp[2][1] = dp[1][1] = 6` ⇒ bỏ "Bàn phím";
+`dp[1][1] = 6 ≠ dp[0][1] = 0` ⇒ lấy "Sách". Kết quả 12 + 6 = **18** với trọng số
+4 + 1 = 5 — đúng như ghi ở Input mẫu. Đây là cách truy vết mọi bài QHD: so ô
+hiện tại với ô hàng trên, khác nhau nghĩa là món đó đã được chọn.
+
+Măng LIS cuối `[10, 12, 15, 18]` cho **độ dài 4** — lưu ý măng KHÔNG phải là
+dãy LIS thật, chỉ cùng độ dài; muốn in LIS thật cần truy vết theo vị trí chèn.
+
+## Code mẫu
+
+```cpp
+// Balo 0/1 — bảng 2D
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n = 4, m = 5;
+    vector<int> w = {1, 3, 4, 2}, v = {6, 10, 12, 7};
+    vector<vector<int>> dp(n + 1, vector<int>(m + 1, 0));
+    for (int i = 1; i <= n; i++)
+        for (int j = 0; j <= m; j++) {
+            dp[i][j] = dp[i - 1][j];
+            if (j >= w[i - 1]) dp[i][j] = max(dp[i][j], dp[i - 1][j - w[i - 1]] + v[i - 1]);
+        }
+    cout << dp[n][m] << '\n';   // 21
+    return 0;
+}
+```
+
+```python
+# LIS O(n log n)
+from bisect import bisect_left
+def lis(a):
+    tails = []
+    for x in a:
+        k = bisect_left(tails, x)
+        if k == len(tails):
+            tails.append(x)
+        else:
+            tails[k] = x
+    return len(tails)
+
+print(lis([10, 3, 12, 4, 15, 2, 18, 11, 13]))  # 4
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Book Shop](https://cses.fi/problemset/task/1158) | CSES | Balo 0/1 chuẩn |
+| [Money Sums](https://cses.fi/problemset/task/1745) | CSES | Balo biến thể đếm tổng |
+| [Longest Increasing Subsequence](https://oj.vnoi.info/problem/lis) | VNOJ | LIS truy vết |
+| [Edit Distance](https://cses.fi/problemset/task/1639) | CSES | DP hai xâu |
+
+## Đọc thêm
+
+- [Quy hoạch động cơ bản](https://vnoi.info/wiki/algo/dp/basic-dynamic-programming-1.md)
+  trên VNOI Wiki — nguồn đối chiếu của bài này.

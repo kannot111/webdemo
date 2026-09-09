@@ -1,0 +1,140 @@
+---
+title: Tập hợp rời rạc (DSU)
+category: Cấu trúc dữ liệu
+description: Disjoint Set Union với union by size và nén đường đi — kiểm tra/gộp tập hợp gần O(1), minh họa cây đại diện co lại sau mỗi thao tác.
+---
+
+## Định nghĩa
+
+**Disjoint Set Union (DSU / Union-Find)** quản lý một tập các phần tử chia thành
+các nhóm rời rạc, hỗ trợ hai thao tác:
+
+- `find(x)` — phần tử thuộc nhóm nào (trả về "đại diện" của nhóm).
+- `union(a, b)` — gộp hai nhóm thành một.
+
+Hai tối ưu làm mọi thao tác tốn gần O(1):
+
+1. **Union by size/rank**: khi gộp, gắn cây **thấp hơn** vào cây **cao hơn** —
+   cây không bị kéo dài tùy tiện.
+2. **Nén đường đi (path compression)**: mỗi lần `find`, gắn trực tiếp mọi đỉnh
+   đi qua lên gốc — lần sau đi thẳng một bước.
+
+Cả hai cùng dùng: O(α(n)) — nghịch đảo Ackermann, thực tế là hằng ≤ 4.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| `n = 8` đỉnh, 7 phép union: `(0,1) (2,3) (4,5) (0,2) (6,7) (4,6) (3,4)` | Gộp dần các tập |
+| Cuối cùng hỏi: còn mấy tập? | Đếm số gốc khác nhau |
+
+**Output mong đợi:**
+
+```text
+Còn 1 tập duy nhất chứa cả 8 đỉnh
+```
+
+## Ý tưởng
+
+Mỗi tập là một **cây đại diện**: gốc của cây là đại diện nhóm (`parent[x] = x`
+nếu x là gốc).
+
+```text
+union(a, b):
+    ra = find(a), rb = find(b)
+    nếu ra == rb: đã cùng nhóm — bỏ qua
+    nếu size[ra] < size[rb]: hoán đổi      // union by size
+    parent[rb] = ra; size[ra] += size[rb]
+```
+
+Xem minh họa: bắt đầu 8 đỉnh 8 nhóm; mỗi lần union gộp hai gốc — đếm số nhóm
+còn lại sau chuỗi thao tác:
+
+<GraphVisualizer algorithm="dsu" height={300} />
+
+Ba ứng dụng kinh điển:
+
+1. **Cây khung nhỏ nhất Kruskal**: duyệt cạnh tăng dần, nhận cạnh khi hai đầu
+   khác gốc.
+2. **Thành phần liên thông động**: thêm cạnh từng bước, đếm số thành phần = số
+   gốc khác nhau.
+3. **DSU có hoàn tác (rollback)**: không nén đường đi, lưu lịch sử gắn — phục
+   vụ chia để trị theo thời gian truy vấn.
+
+## Độ phức tạp
+
+| Thao tác | Chi phí |
+| -------- | ------- |
+| `find` + `union` (cả 2 tối ưu) | O(α(n)) ≈ O(1) |
+| Chỉ union by size, không nén | O(log n) |
+| Dựng DSU từ n phần tử | O(n) |
+
+## Kết quả (Output)
+
+Đếm số lần union **thành công** (hai đầu khác gốc): các bước gộp (0,1), (2,3),
+(4,5), (0,2), (6,7), (4,6), (3,4) đều thành công ⇒ 8 đỉnh − 7 lần gộp = **1 tập
+duy nhất**. Trên visualizer, các nút cùng gốc được gom về chung một "cụm" — sau
+bước cuối tất cả nằm trong một cụm. Nếu thêm union `(0, 5)` nữa thì find(0) =
+find(5) ⇒ bị bỏ qua, số tập không đổi — đó là cách DSU chống chu trình trong
+Kruskal.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+struct DSU {
+    vector<int> parent, sz;
+    DSU(int n): parent(n), sz(n, 1) { iota(parent.begin(), parent.end(), 0); }
+    int find(int x) { return parent[x] == x ? x : parent[x] = find(parent[x]); }
+    bool unite(int a, int b) {
+        a = find(a); b = find(b);
+        if (a == b) return false;
+        if (sz[a] < sz[b]) swap(a, b);
+        parent[b] = a; sz[a] += sz[b];
+        return true;
+    }
+};
+
+int main() {
+    int n, m; cin >> n >> m;
+    DSU dsu(n + 1);
+    int comps = n;
+    while (m--) {
+        int a, b; cin >> a >> b;
+        if (dsu.unite(a, b)) comps--;
+        cout << comps << '\n';
+    }
+    return 0;
+}
+```
+
+```python
+parent = list(range(n)); sz = [1] * n
+def find(x):
+    while parent[x] != x:
+        parent[x] = parent[parent[x]]  # nén đường đi
+        x = parent[x]
+    return x
+def unite(a, b):
+    a, b = find(a), find(b)
+    if a == b: return False
+    if sz[a] < sz[b]: a, b = b, a
+    parent[b] = a; sz[a] += sz[b]
+    return True
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Kruskal — MST](https://oj.vnoi.info/problem/qbmst) | VNOJ | DSU + cây khung |
+| [Merging Communities](https://www.hackerrank.com/challenges/merging-communities/problem) | HackerRank | DSU có đếm kích thước |
+| [Components in a graph](https://www.hackerrank.com/challenges/components-in-graph/problem) | HackerRank | Đếm thành phần lớn/nhỏ nhất |
+| [No Path Matters](https://codeforces.com/problemset/problem/1594/D) | Codeforces | DSU hai màu |
+
+## Đọc thêm
+
+- [DSU](https://vnoi.info/wiki/algo/data-structures/disjoint-set-union.md) trên
+  VNOI Wiki — nguồn đối chiếu của bài này, có phân tích nghịch đảo Ackermann.

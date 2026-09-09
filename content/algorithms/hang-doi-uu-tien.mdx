@@ -1,0 +1,118 @@
+---
+title: Hàng đợi ưu tiên / Heap
+category: Cấu trúc dữ liệu
+description: Min-heap nhị phân — lấy phần tử nhỏ nhất trong O(log n), minh họa nổi bọt khi cắm và sift-down khi lấy min, kèm bài queue ưu tiên kinh điển.
+---
+
+## Định nghĩa
+
+**Heap nhị phân** là cây nhị phân đầy với **bất biến**: cha ≤ mọi con (min-heap)
+hoặc cha ≥ mọi con (max-heap). Nhờ bất biến, **phần tử nhỏ nhất luôn ở gốc** —
+lấy min tốn O(1) để xem, O(log n) để lấy ra và dựng lại.
+
+Lưu trong mảng 0-indexed: con của `i` là `2i+1`, `2i+2`; cha là `(i-1)/2`.
+C++ có sẵn `priority_queue` (max-heap mặc định; min-heap dùng
+`priority_queue<int, vector<int>, greater<int>>`).
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Cắm lần lượt `[7, 2, 9, 4, 1]` | 5 phần tử vào min-heap |
+| Sau đó lấy min cho tới khi heap rỗng | In theo thứ tự tăng dần |
+
+**Output mong đợi:**
+
+```text
+Lần lượt lấy ra: 1 2 4 7 9
+```
+
+## Ý tưởng
+
+**Cắm phần tử** (`push`): đặt vào đáy rồi **nổi bọt lên** (sift-up) — hoán đổi
+với cha chừng nào cha còn lớn hơn:
+
+```text
+push(x): đặt x ở đáy
+    while có cha và cha > x: hoán đổi với cha
+```
+
+**Lấy min** (`pop`): gốc là min — đưa phần tử cuối lên gốc rồi **sift-down**:
+hoán đổi về phía con nhỏ hơn chừng nào vi phạm bất biến.
+
+Xem minh họa: cắm lần lượt 7, 2, 9, 4, 1 rồi lấy toàn bộ — mảng heap thay đổi
+sau mỗi bước, phần tử nhỏ nhất luôn về vị trí 0:
+
+<ArrayVisualizer algorithm="heap" height={230} />
+
+Ba ứng dụng thực chiến:
+
+1. **Bài "thao tác tối thiểu"**: mỗi bước chọn 2 phần tử nhỏ nhất — heap thay
+   vì sort lại sau mỗi bước (O(n log n) thay vì O(n² log n)).
+2. **Dijkstra**: hàng đợi ưu tiên các đỉnh theo `d[u]` — từ O(V²) xuống
+   O(E log V).
+3. **Trung vị động**: 2 heap (max-heap nửa nhỏ + min-heap nửa lớn) giữ cân bằng.
+
+## Độ phức tạp
+
+| Thao tác | Chi phí | Cách làm |
+| -------- | ------- | -------- |
+| `push` | O(log n) | Sift-up |
+| `pop` (lấy min) | O(log n) | Sift-down |
+| `top` (xem min) | O(1) | Gốc của heap |
+| Dựng heap từ n phần tử | O(n) | `make_heap`/heapify từ đáy lên |
+
+## Kết quả (Output)
+
+Sau khi cắm hết, gốc heap = **1** (phần tử nhỏ nhất) — nhìn visualizer sẽ thấy
+vị trí 0 luôn giữ min sau mỗi lần cắm xong. Lấy min liên tục cho ra
+`1 2 4 7 9` — đúng thứ tự tăng dần dù ta **chưa bao giờ sort toàn bộ**: mỗi lần
+lấy chỉ tốn O(log n). Nhìn các bước sift-down sẽ thấy "cây tự hàn gắn": phần
+tử cuối lên gốc rồi chìm xuống vị trí đúng, mọi cha luôn ≤ con.
+
+## Code mẫu
+
+C++ — "mua đồ với ngân sách": mỗi lần lấy đồ rẻ nhất có thể mua:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n; long long k;
+    cin >> n >> k;
+    priority_queue<long long, vector<long long>, greater<>> pq; // min-heap
+    for (int i = 0; i < n; i++) { long long x; cin >> x; pq.push(x); }
+    int cnt = 0;
+    while (!pq.empty() && pq.top() <= k) {
+        k -= pq.top(); pq.pop(); cnt++;
+    }
+    cout << cnt;
+    return 0;
+}
+```
+
+Python — `heapq` là min-heap:
+
+```python
+import heapq
+h = [7, 2, 9, 4, 1]
+heapq.heapify(h)              # O(n)
+heapq.heappush(h, 3)
+while h:
+    print(heapq.heappop(h))   # in ra theo thứ tự tăng dần — heapsort
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Priyanka and Toys](https://www.hackerrank.com/challenges/priyanka-and-toys/problem) | HackerRank | Sort + heap |
+| [Minimum Cost of Ropes](https://www.geeksforgeeks.org/problems/minimum-cost-of-ropes-1587115620/1) | GFG | Gộp dây — heap kinh điển |
+| [Merging Communities](https://www.hackerrank.com/challenges/merging-communities/problem) | HackerRank | Heap kết hợp DSU |
+| [Median Updates](https://www.hackerrank.com/challenges/median/problem) | HackerRank | 2 heap giữ trung vị |
+
+## Đọc thêm
+
+- [Binary Heap](https://vnoi.info/wiki/translate/wcipeg/Binary-Heap.md) trên
+  VNOI Wiki — nguồn đối chiếu của bài này.

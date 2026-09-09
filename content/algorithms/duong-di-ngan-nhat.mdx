@@ -1,0 +1,129 @@
+---
+title: Đường đi ngắn nhất — Dijkstra
+category: Lý thuyết đồ thị
+description: Thuật toán Dijkstra — đường đi ngắn nhất từ một nguồn trên đồ thị trọng số dương, minh họa trực quan việc chốt đỉnh d nhỏ nhất và thả lỏng cạnh.
+---
+
+## Định nghĩa
+
+**Bài toán đường đi ngắn nhất từ một nguồn** (SSSP): cho đồ thị có trọng số
+(w ≥ 0) và đỉnh nguồn s — tìm đường đi tổng trọng số nhỏ nhất tới mọi đỉnh.
+
+- **Dijkstra**: w ≥ 0 — chốt dần đỉnh có d nhỏ nhất, O(E log V) dùng heap.
+- **Bellman-Ford**: chịu được trọng số âm, O(V·E), phát hiện chu trình âm.
+- **Floyd-Warshall**: đường đi giữa **mọi cặp** đỉnh, O(V³), viết trong 3 dòng.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Đồ thị 6 đỉnh, cạnh có trọng số: (0,1,4) (0,2,3) (1,2,2) (1,3,7) (2,3,5) (2,4,8) (3,4,6) (3,5,4) (4,5,3) | Đường đi ngắn nhất từ đỉnh 0 |
+
+**Output mong đợi:**
+
+```text
+d từ đỉnh 0: [0, 4, 3, 8, 11, 12]
+Đường tới đỉnh 4: 0 → 2 → 4 (3 + 8 = 11)
+```
+
+## Ý tưởng
+
+Dijkstra — "chốt đỉnh" là linh hồn thuật toán:
+
+```text
+d[s] = 0, mọi đỉnh khác ∞
+while còn đỉnh chưa chốt:
+    u = đỉnh chưa chốt có d nhỏ nhất     // đỉnh này ĐÃ đúng d cuối cùng
+    chốt u
+    với mỗi kề v: d[v] = min(d[v], d[u] + w(u, v))   // thả lỏng
+```
+
+Vì sao đỉnh d nhỏ nhất chưa chốt **đã đúng**? Vì mọi đường khác tới u đều đi
+qua một đỉnh chưa chốt nào đó có d ≥ d(u), cộng thêm trọng số không âm — không
+thể ngắn hơn. Đây là chỗ trọng số **bắt buộc không âm**:
+
+<GraphVisualizer algorithm="dijkstra" height={300} />
+
+Ba điểm đáng nhớ:
+
+1. **Heap**: dùng priority_queue lấy đỉnh d nhỏ nhất trong O(log V); có thể
+   đẩy trùng đỉnh (bản "lazy") — đơn giản hơn decrease-key.
+2. **Bellman-Ford**: lặp V−1 lần thả lỏng mọi cạnh; lần V mà vẫn cải tiến được
+   ⇒ tồn tại **chu trình âm**.
+3. **Floyd-Warshall**: `dp[i][j] = min(dp[i][j], dp[i][k] + dp[k][j])` cho k chạy
+   1..V — chỉ 3 vòng lặp, V ≤ 500 vẫn chạy.
+
+## Kết quả (Output)
+
+Theo dõi từng lần "chốt" trên visualizer: chốt 0 (d=0) → thả lỏng cạnh (0,1)
+w=4 và (0,2) w=3 ⇒ d(1)=4, d(2)=3 → chốt 2 (d=3) → thả lỏng (2,1): 3+2=5 > 4
+không đổi; (2,3): d(3)=3+5=**8**; (2,4): d(4)=3+8=**11** → chốt 1 (d=4) →
+(1,3): 4+7=11 > 8 không đổi → chốt 3 (d=8) → (3,5): d(5)=8+4=**12**; (3,4):
+14 > 11 → chốt 4 (d=11) → (4,5): 14 > 12 → chốt 5. Kết quả `0 4 3 8 11 12`.
+
+Bài học trực quan: đường tới đỉnh 3 là 0→2→3 (3+5=8) **ngắn hơn** đường
+0→1→3 (4+7=11) dù đường 0→1 có cạnh đầu "rẻ hơn"... thực ra 0→2 rẻ hơn cả
+(3 < 4). Điểm mấu chốt: **đường ít cạnh nhất chưa chắc ngắn nhất khi có trọng
+số** — nếu chỉ BFS ta sẽ lấy 0→1→3, sai.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n = 6;
+    vector<vector<pair<int,int>>> adj(n);
+    for (auto [u, v, w] : vector<tuple<int,int,int>>{{0,1,4},{0,2,3},{1,2,2},{1,3,7},
+        {2,3,5},{2,4,8},{3,4,6},{3,5,4},{4,5,3}}) {
+        adj[u].push_back({v, w}); adj[v].push_back({u, w});
+    }
+    vector<long long> d(n, LLONG_MAX);
+    priority_queue<pair<long long,int>, vector<pair<long long,int>>, greater<>> pq;
+    d[0] = 0; pq.push({0, 0});
+    while (!pq.empty()) {
+        auto [du, u] = pq.top(); pq.pop();
+        if (du != d[u]) continue;                 // bản cũ — bỏ qua
+        for (auto [v, w] : adj[u])
+            if (d[u] + w < d[v]) {
+                d[v] = d[u] + w;
+                pq.push({d[v], v});
+            }
+    }
+    for (int i = 0; i < n; i++) cout << d[i] << ' ';   // 0 4 3 8 11 12
+    cout << '\n';
+    return 0;
+}
+```
+
+```python
+import heapq
+def dijkstra(adj, src):
+    d = {src: 0}
+    pq = [(0, src)]
+    while pq:
+        du, u = heapq.heappop(pq)
+        if du > d.get(u, float('inf')): continue
+        for v, w in adj[u]:
+            nd = du + w
+            if nd < d.get(v, float('inf')):
+                d[v] = nd
+                heapq.heappush(pq, (nd, v))
+    return d
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Shortest Routes I](https://cses.fi/problemset/task/1671) | CSES | Dijkstra chuẩn |
+| [Flight Discount](https://cses.fi/problemset/task/1195) | CSES | Dijkstra + trạng thái vé giảm giá |
+| [High Score](https://cses.fi/problemset/task/1685) | CSES | Bellman-Ford + chu trình âm |
+| [Police Stations](https://oj.vnoi.info/problem/police) | VNOJ | Dijkstra đa nguồn |
+
+## Đọc thêm
+
+- [Đường đi ngắn nhất](https://vnoi.info/wiki/algo/graph-theory/shortest-path.md)
+  trên VNOI Wiki — nguồn đối chiếu của bài này, có phân tích Dijkstra, Bellman
+  -Ford, Floyd-Warshall đầy đủ.

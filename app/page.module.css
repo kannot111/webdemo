@@ -1,0 +1,208 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.headInner {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.siteHead {
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.siteHead .headInner {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.brand {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.brand:hover {
+  text-decoration: none;
+  color: var(--accent);
+}
+
+.headNote {
+  font-size: 0.82rem;
+  color: var(--text-faint);
+}
+
+.main {
+  width: 100%;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px 72px;
+  flex: 1;
+}
+
+.title {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.intro {
+  color: var(--text-soft);
+  max-width: 62ch;
+  margin-bottom: 6px;
+}
+
+/* Mỗi giai đoạn là một tầng lớn, tách bằng đường kẻ đậm hơn. */
+.stage {
+  margin-top: 56px;
+  padding-top: 22px;
+  border-top: 2px solid var(--text);
+}
+
+.stageHead {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+}
+
+.stageName {
+  font-size: 1.4rem;
+}
+
+.stageTag {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--accent);
+}
+
+.stageGoal {
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  margin-top: 4px;
+}
+
+.stageCount {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.group {
+  margin-top: 26px;
+}
+
+.groupName {
+  font-size: 1.02rem;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.topics {
+  list-style: none;
+  margin: 0;
+}
+
+.topic {
+  padding: 10px 0 10px 16px;
+  border-bottom: 1px solid var(--border);
+  border-left: 1px solid var(--border);
+  position: relative;
+}
+
+.topic:last-child {
+  border-bottom: none;
+}
+
+.topicLink,
+.topicPlanned {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.topicLink {
+  color: inherit;
+}
+
+.topicLink:hover {
+  text-decoration: none;
+}
+
+.topicLink:hover .topicName {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.topic::before {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: 1.35em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+
+.topicLink::before {
+  background: var(--accent);
+}
+
+.topicName {
+  font-weight: 550;
+}
+
+.topicEn {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  color: var(--text-faint);
+}
+
+.topicReady {
+  font-size: 0.76rem;
+  color: var(--accent);
+}
+
+.topicDetail {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  margin-top: 2px;
+}
+
+.topicVnoi {
+  font-size: 0.76rem;
+  color: var(--text-faint);
+  margin-top: 1px;
+}
+
+.siteFoot {
+  border-top: 1px solid var(--border);
+}
+
+.siteFoot .headInner {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  font-size: 0.82rem;
+  color: var(--text-faint);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.footCredit {
+  font-size: 0.76rem;
+}

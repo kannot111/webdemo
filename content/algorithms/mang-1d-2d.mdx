@@ -1,0 +1,138 @@
+---
+title: Mảng 1D và 2D
+category: Kỹ năng ngôn ngữ & Nền tảng
+description: Mảng một chiều và hai chiều — cấu trúc dữ liệu nền tảng của mọi bài thi, minh họa trực quan cách duyệt từng phần tử và công thức chỉ số tuyến tính.
+---
+
+## Định nghĩa
+
+**Mảng** là dãy các phần tử **cùng kiểu, lưu liên tiếp trong bộ nhớ**, truy cập
+bằng chỉ số trong O(1). Đây là cấu trúc dữ liệu đầu tiên và quan trọng nhất
+trong thi HSG: mảng cộng dồn, hai con trỏ, bảng QHD, đồ thị đều dựng trên mảng.
+
+- **1D**: `a[0..n-1]` — một hàng.
+- **2D**: `a[0..r-1][0..c-1]` — bảng; lưu liên tiếp **theo hàng** trong bộ nhớ.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Mảng 1D `[7, 13, 5, 21, 8, 34]` | Duyệt cộng dồn tổng |
+| Bảng 2D 3×3 `[3 8 1 / 4 6 9 / 2 7 5]` | Duyệt theo hàng |
+
+**Output mong đợi:**
+
+```text
+Tổng mảng 1D = 88
+Tổng bảng 2D = 45
+```
+
+## Ý tưởng
+
+Duyệt mảng 1 chiều:
+
+```text
+for i = 0 .. n-1:     // mỗi lần ghé thăm a[i]
+    sum += a[i]
+```
+
+Duyệt bảng 2 chiều (theo hàng, từ trái sang phải):
+
+```text
+for i = 0 .. r-1:
+    for j = 0 .. c-1:
+        a[i][j]  // ô tuyến tính thứ i·c + j trong bộ nhớ
+```
+
+Công thức `i·c + j` giải thích vì sao mảng 2D chỉ là mảng 1D "đặt vào khung" —
+và cũng là lý do một mảng `char s[100]` có thể đọc như xâu, hay một mảng
+`int a[100*100]` có thể coi như bảng 100×100.
+
+Xem minh họa: mỗi ô được ghé thăm đúng một lần — duyệt mảng luôn tốn
+O(n) phép truy cập, không sớm hơn được.
+
+<ArrayVisualizer algorithm="array1d" height={220} />
+
+Với bảng 2 chiều, chú ý nhãn chỉ số tuyến tính trong chú thích của từng ô:
+
+<MatrixVisualizer algorithm="array2d" height={240} />
+
+Ba lỗi kinh điển của mảng cần né:
+
+1. **Tràn biên**: vòng lặp `for i = 1..n` nhưng mảng chỉ khai `a[n-1]` — truy
+   cập ngoài vùng nhớ. Luôn khai dư ít nhất 5–10 ô (khai `a[1000005]` cho n ≤ 10⁶).
+2. **Chưa khởi tạo**: biến toàn cục tự động bằng 0, biến cục bộ chứa **rác** —
+   luôn `memset` hoặc gán trước khi dùng khi khai cục bộ.
+3. **Nhầm hàng/cột** ở mảng 2D: `a[i][j]` với `i` là hàng, `j` là cột; đọc đề
+   cẩn thận yêu cầu nhập theo thứ tự nào (nhiều đề cho nhập theo cột!).
+
+## Độ phức tạp
+
+| Thao tác | Chi phí |
+| -------- | ------- |
+| Truy cập `a[i]` / `a[i][j]` | O(1) |
+| Duyệt toàn bộ n phần tử | O(n) |
+| Duyệt bảng r×c | O(r·c) |
+| Chèn/xóa giữa mảng | O(n) — phải dồn các phần tử sau |
+
+## Kết quả (Output)
+
+Mảng 1D: tổng chạy 7 → 20 → 25 → 46 → 54 → 88 — mỗi ô sáng lên đúng lúc được
+ghé thăm, cuối cùng tổng = **88**. Bảng 2D: duyệt theo hàng 3+8+1 → 4+6+9 →
+2+7+5, tổng = **45**; chú thích mỗi bước cho thấy chỉ số tuyến tính `i·3 + j`
+(ô [1][2] là ô thứ 1·3 + 2 = 5). Nhìn trực quan bạn thấy thứ tự ghé thăm **theo
+hàng**: hết hàng 0 mới sang hàng 1 — trùng khớp với cách bộ nhớ lưu bảng.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int a[1005], b[1005][1005];
+
+int main() {
+    int r, c;
+    cin >> r >> c;
+    for (int i = 0; i < r; i++)
+        for (int j = 0; j < c; j++)
+            cin >> b[i][j];
+
+    // Tổng từng hàng và từng cột — thao tác 2D kinh điển
+    for (int i = 0; i < r; i++) {
+        long long s = 0;
+        for (int j = 0; j < c; j++) s += b[i][j];
+        cout << s << ' ';
+    }
+    cout << '\n';
+    for (int j = 0; j < c; j++) {
+        long long s = 0;
+        for (int i = 0; i < r; i++) s += b[i][j];
+        cout << s << ' ';
+    }
+    return 0;
+}
+```
+
+```python
+r, c = map(int, input().split())
+b = [list(map(int, input().split())) for _ in range(r)]
+for i in range(r):
+    print(sum(b[i]), end=' ')
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Maximum Subarray Sum](https://cses.fi/problemset/task/1643) | CSES | Duyệt mảng + Kadane |
+| [Missing Number](https://cses.fi/problemset/task/1083) | CSES | Duyệt + đánh dấu có mặt |
+| [Matrix](https://leetcode.com/problems/spiral-matrix/) | LeetCode | Duyệt biên bảng 2D |
+| [Tổng lớn nhất của dãy con liên tiếp](https://cses.fi/problemset/task/1643) | CSES | Mảng 1D điển hình |
+
+## Đọc thêm
+
+- [Mảng và danh sách liên kết](https://vnoi.info/wiki/algo/data-structures/array-vs-linked-lists.md)
+  trên VNOI Wiki — so sánh khi nào mảng là lựa chọn đúng.
+- Kết hợp với bài [Mảng cộng dồn & Mảng hiệu](/algorithms/prefix-sum) của site
+  để xử lý truy vấn đoạn nhanh hơn duyệt thường.

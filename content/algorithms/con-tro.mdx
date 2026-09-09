@@ -1,0 +1,120 @@
+---
+title: Con trỏ
+category: Kỹ năng ngôn ngữ & Nền tảng
+description: Con trỏ trong C++ — biến lưu địa chỉ, cách mảng và con trỏ gắn bó với nhau, minh họa bằng việc "con trỏ" di chuyển trên mảng.
+---
+
+## Định nghĩa
+
+**Con trỏ (pointer)** là biến lưu **địa chỉ bộ nhớ** của biến khác. Cú pháp:
+
+```text
+int x = 42;
+int* p = &x;   // p chứa địa chỉ của x (& = lấy địa chỉ)
+cout << *p;    // 42 (* = "trỏ tới" — đọc giá trị tại địa chỉ đó)
+*p = 7;        // ghi qua con trỏ: x bây giờ = 7
+```
+
+Con trỏ là cách hệ thống biểu diễn "vị trí dữ liệu" — mọi tham chiếu mảng,
+vector, đồ thị (danh sách kề), cây đều quy về con trỏ ở tầng dưới.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Mảng `a = [7, 13, 5, 21, 8]`, con trỏ `p = a` | Duyệt mảng bằng con trỏ `*p` rồi `p++` |
+
+**Output mong đợi:**
+
+```text
+*p = 7, *(p+2) = 5            // đọc phần tử đầu và phần tử thứ 3
+Sau addBonus(+10): 17 18 ...  // mảng gốc thay đổi qua con trỏ
+```
+
+## Ý tưởng
+
+Hai phép toán gốc:
+
+- `p + k` — **phép cộng con trỏ**: nhảy `k` phần tử (không phải `k` byte — trình
+  biên dịch nhân với kích thước phần tử).
+- `*(p + k)` — đọc phần tử tại vị trí đó. Với mảng, `a[k]` **chính là** `*(a + k)`:
+  tên mảng là con trỏ tới phần tử đầu.
+
+```text
+a:  [7][13][5][21][8]      // mảng 5 phần tử
+     ↑
+     p = a        → *p = 7
+p++ → trỏ a[1]   → *p = 13
+```
+
+Xem minh họa: con trỏ di chuyển qua từng phần tử — mỗi ô được trỏ tới và đọc
+giá trị, đúng như `*p` rồi `p++` trong vòng lặp:
+
+<ArrayVisualizer algorithm="array1d" height={220} />
+
+Ba điều quan trọng khi dùng con trỏ trong thi:
+
+1. **Không bao giờ trỏ ngoài vùng nhớ** — `p` chưa gán hoặc đã qua cuối mảng mà
+   vẫn `*p` là lỗi runtime khó rà. Ưu tiên dùng `vector` + chỉ số để giảm rủi ro.
+2. **Con trỏ và tham số hàm**: truyền mảng vào hàm thực chất truyền con trỏ —
+   hàm sửa được nội dung mảng gốc (khác với biến thường truyền bản sao).
+3. **Con trỏ thông minh** chỉ cần ở C++ hiện đại: trong thi, `vector`, `set`,
+   `map` đã quản lý bộ nhớ giúp ta — hiểu con trỏ để hiểu chúng hoạt động,
+   không nhất thiết phải dùng con trỏ thô.
+
+## Độ phức tạp
+
+| Thao tác | Chi phí |
+| -------- | ------- |
+| `*p` (đọc/ghi qua con trỏ) | O(1) |
+| `p + k` (nhảy k phần tử) | O(1) |
+| Duyệt mảng bằng con trỏ | O(n) |
+
+## Kết quả (Output)
+
+Trên visualizer, con trỏ chạy qua từng ô: `*p` đọc 7, sau `p++` đọc 13 — tổng
+duyệt 7+13+5+21+8 = 54 (số cuối ở chú thích bước "done"). Điểm trực quan quan
+trọng nhất: hàm `addBonus` nhận con trỏ nên **mảng gốc tăng thêm 10 ở mọi ô** —
+nếu là tham trị (copy mảng) thì mảng gốc không đổi; đây là lý do `sort(a, a+n)`
+sắp xếp được mảng thật.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+void addBonus(int* a, int n, int bonus) {  // nhận con trỏ — sửa được mảng gốc
+    for (int i = 0; i < n; i++) a[i] += bonus;  // tương đương *(a + i) += bonus
+}
+
+int main() {
+    int a[5] = {7, 13, 5, 21, 8};
+    int* p = a;                       // p trỏ tới a[0]
+    cout << *p << *(p + 2) << '\n';   // 7 5 — phép cộng con trỏ
+    addBonus(a, 5, 10);
+    cout << a[0] << ' ' << a[4] << '\n';  // 17 18 — mảng gốc đã thay đổi
+    return 0;
+}
+```
+
+```python
+# Python không lộ con trỏ — nhưng mọi biến đều là "tham chiếu" tới đối tượng:
+a = [7, 13, 5, 21, 8]
+b = a        # b trỏ CÙNG danh sách, không sao chép
+b[0] = 99
+print(a[0])  # 99 — thay đổi thấy được ở cả hai tên
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Container With Most Water](https://leetcode.com/problems/container-with-most-water/) | LeetCode | Hai con trỏ trên mảng |
+| [Reverse String](https://leetcode.com/problems/reverse-string/) | LeetCode | Hoán đổi bằng hai con trỏ |
+| [Số Fibonacci bằng mảng](https://cses.fi/problemset/task/1724) | CSES | Dựng bảng kết quả |
+
+## Đọc thêm
+
+- [Con trỏ](https://vnoi.info/wiki/languages/cpp/pointers.md) trên VNOI Wiki —
+  giải thích chi tiết hơn về con trỏ, mảng và cấp phát động.

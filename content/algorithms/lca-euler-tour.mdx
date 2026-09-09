@@ -1,0 +1,158 @@
+---
+title: LCA & Euler Tour
+category: Lý thuyết đồ thị
+description: Tổ tiên chung thấp nhất (LCA) bằng bội nhị phân — tiền xử lý bảng cha 2^k và leo nhị phân từng bit; kèm Euler Tour để xử lý cây thành dãy.
+---
+
+## Định nghĩa
+
+**LCA(u, v)** = tổ tiên sâu nhất có cả u và v trong cây con. Hai kỹ thuật:
+
+- **Bội nhị phân (Binary Lifting)**: tiền xử lý `up[k][u]` = tổ tiên cấp 2^k của
+  u (O(n log n) bộ nhớ); tìm LCA bằng cách đưa 2 đỉnh về cùng độ sâu rồi leo
+  nhị phân — O(log n)/truy vấn.
+- **Euler Tour**: ghi thứ tự vào/ra (`tin`, `tout`) khi DFS — biến mọi bài
+  "cây con" thành bài "đoạn mảng" cho cây Fenwick/segment tree.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Cây 7 đỉnh: 0 nối 1, 2; 1 nối 3, 4; 2 nối 5; 5 nối 6 | Cây gốc 0 |
+| Truy vấn LCA(3, 4) và LCA(3, 6) | Tổ tiên chung thấp nhất |
+
+**Output mong đợi:**
+
+```text
+LCA(3, 4) = 1
+LCA(3, 6) = 0
+```
+
+## Ý tưởng
+
+```text
+Tiền xử lý: up[0][u] = cha(u); up[k][u] = up[k-1][up[k-1][u]]
+
+LCA(u, v):
+    nếu depth[u] < depth[v]: hoán đổi
+    đưa u lên bằng đúng hiệu độ sâu (leo từng bit)
+    nếu u == v: trả về u
+    for k từ cao xuống thấp:
+        nếu up[k][u] != up[k][v]: u = up[k][u]; v = up[k][v]
+    trả về up[0][u]
+```
+
+Xem trực quan trên cùng cây (QHD trên cây dùng chính cấu trúc này): mỗi nhãn
+đỉnh là cặp giá trị dp — tạm dùng để thấy cấu trúc cha-con:
+
+<TreeVisualizer algorithm="treeDp" height={320} />
+
+Ba điểm đáng nhớ:
+
+1. **Euler Tour**: `u` là tổ tiên của v ⟺ `tin[u] ≤ tin[v] ≤ tout[u]` — kiểm tra
+   O(1) không cần LCA.
+2. **LCA bằng RMQ trên Euler Tour**: ghi đỉnh mỗi lần ghé (kể cả quay lại) thành
+   dãy dài 2n−1, LCA(u,v) = đỉnh có depth nhỏ nhất trong đoạn — dùng Sparse
+   Table RMQ O(1)/truy vấn.
+3. **Độ sâu lệch nhau**: bước "đưa về cùng độ sâu" phải leo **đúng bit** của
+   hiệu (13 = 1101₂ ⇒ leo 8, 4, 1) — không leo từng bước một.
+
+## Kết quả (Output)
+
+Cây gốc 0: đỉnh 3 (con của 1) và 4 (con của 1) có độ sâu bằng nhau = 2, up[0]
+của cả hai là **1** ⇒ LCA(3, 4) = 1. Với LCA(3, 6): 3 sâu 2, 6 sâu 3 — leo 6
+lên 1 bước về đỉnh 5 (sâu 2); giờ 3 và 5 khác nhau, leo tiếp: up[0]: 3→1,
+5→2 khác nhau ⇒ leo; up[1]: 3→0, 5→0 bằng nhau ⇒ dừng, trả về up[0][3] = **0**.
+Đúng như Input mẫu — trực quan: đường lên từ 3 và 6 gặp nhau lần đầu tại gốc 0,
+trong khi 3 và 4 gặp ngay tại 1.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+const int K = 20;
+int n, LOG;
+vector<vector<int>> up;
+vector<int> depth;
+vector<vector<int>> adj;
+
+void dfs(int u, int p) {
+    up[0][u] = p;
+    for (int k = 1; k <= LOG; k++) up[k][u] = up[k - 1][up[k - 1][u]];
+    for (int v : adj[u]) if (v != p) {
+        depth[v] = depth[u] + 1;
+        dfs(v, u);
+    }
+}
+
+int lca(int u, int v) {
+    if (depth[u] < depth[v]) swap(u, v);
+    int diff = depth[u] - depth[v];
+    for (int k = 0; k <= LOG; k++)
+        if (diff >> k & 1) u = up[k][u];
+    if (u == v) return u;
+    for (int k = LOG; k >= 0; k--)
+        if (up[k][u] != up[k][v]) { u = up[k][u]; v = up[k][v]; }
+    return up[0][u];
+}
+
+int main() {
+    n = 7; LOG = 20;
+    adj.assign(n, {});
+    for (auto [u, v] : vector<pair<int,int>>{{0,1},{0,2},{1,3},{1,4},{2,5},{5,6}}) {
+        adj[u].push_back(v); adj[v].push_back(u);
+    }
+    up.assign(K, vector<int>(n));
+    depth.assign(n, 0);
+    dfs(0, 0);
+    cout << lca(3, 4) << ' ' << lca(3, 6) << '\n';   // 1 0
+    return 0;
+}
+```
+
+```python
+import sys
+sys.setrecursionlimit(10**6)
+LOG = 20
+
+def build(n, adj):
+    up = [[0] * n for _ in range(LOG)]
+    depth = [0] * n
+    def dfs(u, p):
+        up[0][u] = p
+        for k in range(1, LOG):
+            up[k][u] = up[k - 1][up[k - 1][u]]
+        for v in adj[u]:
+            if v != p:
+                depth[v] = depth[u] + 1
+                dfs(v, u)
+    dfs(0, 0)
+    return up, depth
+
+def lca(u, v, up, depth, LOG=LOG):
+    if depth[u] < depth[v]: u, v = v, u
+    diff = depth[u] - depth[v]
+    for k in range(LOG):
+        if diff >> k & 1: u = up[k][u]
+    if u == v: return u
+    for k in range(LOG - 1, -1, -1):
+        if up[k][u] != up[k][v]:
+            u = up[k][u]; v = up[k][v]
+    return up[0][u]
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Company Queries II](https://cses.fi/problemset/task/1688) | CSES | LCA chuẩn |
+| [Distance Queries](https://cses.fi/problemset/task/1133) | CSES | LCA + độ sâu cây |
+| [Subtree Queries](https://cses.fi/problemset/task/1137) | CSES | Euler Tour + Fenwick |
+
+## Đọc thêm
+
+- [LCA](https://vnoi.info/wiki/algo/data-structures/lca.md) và
+  [Euler Tour trên cây](https://vnoi.info/wiki/algo/graph-theory/euler-tour-on-tree.md)
+  trên VNOI Wiki — nguồn đối chiếu của bài này.

@@ -1,0 +1,114 @@
+---
+title: Hai con trỏ & Cửa sổ trượt
+category: Kỹ thuật cơ bản
+description: Kỹ thuật hai con trỏ và cửa sổ trượt — từ O(n²) xuống O(n) trên mảng có tính chất đơn điệu, minh họa từng bước di chuyển của hai con trỏ.
+---
+
+## Định nghĩa
+
+**Hai con trỏ (two pointers)**: giữ hai chỉ số cùng di chuyển trên mảng, mỗi
+bước loại đi phần tử chắc chắn không cần xét — nhờ tính **đơn điệu** của mảng
+hoặc của bài toán.
+
+**Cửa sổ trượt (sliding window)**: dạng đặc biệt khi hai con trỏ cùng chiều,
+giữ một "cửa sổ" `[l..r]` liên tiếp và cập nhật thông tin cửa sổ khi trượt.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Dãy đã sắp `[2, 5, 8, 12, 19, 23, 31, 40, 47]`, S = 42 | Tìm cặp tổng bằng 42 |
+| Cửa sổ k = 4 trên `[1, 4, 2, 9, 3, 8, 5, 7, 6]` | Tổng lớn nhất cửa sổ độ dài 4 |
+
+**Output mong đợi:**
+
+```text
+Hai con trỏ: cặp (0, 7) — a[0] + a[7] = 2 + 40 = 42
+Cửa sổ    : tổng 26 tại [5..8] — 8 + 5 + 7 + 6 = 26
+```
+
+## Ý tưởng
+
+Bài kinh điển: trên dãy **đã sắp tăng dần**, tìm cặp có tổng bằng S.
+
+```text
+l = 0, r = n - 1
+while l < r:
+    nếu a[l] + a[r] == S → tìm thấy
+    nếu a[l] + a[r] <  S → a[l] ghép với ai cũng thiếu ⇒ l++
+    nếu a[l] + a[r] >  S → a[r] ghép với ai cũng thừa ⇒ r--
+```
+
+Lập luận "ghép với ai cũng thiếu/thừa" là chỗ chứng minh không bỏ sót nghiệm —
+mỗi bước **một con trỏ đi ít nhất 1 ô**, nên tổng cộng chỉ O(n) bước.
+
+Xem minh họa: ô xanh đậm là cặp đang xét, ô xanh nhạt là phần tử đã bị loại
+vĩnh viễn:
+
+<ArrayVisualizer algorithm="twoPointers" height={220} />
+
+Cửa sổ trượt — tổng lớn nhất của cửa sổ độ dài k, mỗi bước trượt 1 ô:
+
+<ArrayVisualizer algorithm="slidingWindow" height={220} />
+
+Ba biến thể cần nhận diện:
+
+1. **Cửa sổ thỏa điều kiện "lớn nhất"**: r tiến dần, khi vi phạm thì l tiến
+   (`sum > S → rút l`). Tổng số bước l + r ≤ 2n.
+2. **Hai dãy**: hợp hai dãy đã sắp (bước merge của merge sort).
+3. **Cửa sổ "đặc biệt"**: đếm số phần tử phân biệt trong cửa sổ bằng map —
+   cửa sổ không hợp lệ khi map vượt k phần tử.
+
+## Độ phức tạp
+
+| Kỹ thuật | Chi phí |
+| -------- | ------- |
+| Hai con trỏ ngược chiều | O(n) |
+| Cửa sổ trượt (l, r cùng chiều) | O(n) hoặc O(n log k) nếu cần min/max cửa sổ |
+| So với vét cạn hai vòng | O(n²) → tiết kiệm bậc |
+
+## Code mẫu
+
+```cpp
+// Cặp có tổng bằng S trên dãy đã sắp — O(n)
+int l = 0, r = n - 1;
+while (l < r) {
+    int s = a[l] + a[r];
+    if (s == S) { cout << l << ' ' << r; return 0; }
+    if (s < S) l++; else r--;
+}
+
+// Cửa sổ dài nhất có tổng ≤ S — O(n)
+long long sum = 0; int best = 0, l = 0;
+for (int r = 0; r < n; r++) {
+    sum += a[r];
+    while (sum > S) sum -= a[l++];
+    best = max(best, r - l + 1);
+}
+```
+
+```python
+def longest_window(a, S):
+    l = best = 0
+    s = 0
+    for r, x in enumerate(a):
+        s += x
+        while s > S:
+            s -= a[l]; l += 1
+        best = max(best, r - l + 1)
+    return best
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Books](https://codeforces.com/problemset/problem/279/B) | Codeforces | Cửa sổ tổng ≤ S |
+| [Sum of Two Values](https://cses.fi/problemset/task/1640) | CSES | Hai con trỏ tìm cặp |
+| [Sum of Three Values](https://cses.fi/problemset/task/1641) | CSES | Hai con trỏ + cố định 1 phần tử |
+| [Sliding Window Median](https://cses.fi/problemset/task/1076) | CSES | Cửa sổ trượt + cấu trúc |
+
+## Đọc thêm
+
+- [Hai con trỏ](https://vnoi.info/wiki/algo/basic/two-pointers.md) trên VNOI
+  Wiki — nguồn đối chiếu của bài này.

@@ -1,0 +1,119 @@
+---
+title: Tìm kiếm tam phân
+category: Kỹ thuật cơ bản
+description: Tìm kiếm tam phân — tìm cực trị của hàm unimodal bằng cách loại 1/3 không gian tìm kiếm mỗi bước, minh họa trực quan việc co đoạn.
+---
+
+## Định nghĩa
+
+**Tìm kiếm tam phân (ternary search)** tìm **cực trị** của hàm **unimodal** —
+hàm tăng đều đến điểm đỉnh rồi giảm đều (hoặc ngược lại). Nhị phân chỉ tìm
+được khi hàm **đơn điệu** (thỏa rồi sai dần); khi cần tìm **đỉnh**, dùng tam phân.
+
+Hàm unimodal có tính chất vàng: trên đoạn `[lo..hi]`, chọn hai điểm thử
+`m1 < m2`:
+
+```text
+nếu f(m1) < f(m2) → đỉnh nằm bên phải m1  ⇒ bỏ [lo..m1]
+nếu f(m1) > f(m2) → đỉnh nằm bên trái m2  ⇒ bỏ [m2..hi]
+nếu f(m1) = f(m2) → đỉnh nằm giữa m1 và m2 ⇒ bỏ cả hai đầu
+```
+
+Mỗi bước loại được **1/3 đoạn** — không gian tìm kiếm giảm theo cấp số nhân:
+n → 2n/3 → (2/3)²n… nên O(log₁.₅ n) bước (gần gấp 1,7 lần số bước nhị phân).
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Mảng giá trị `f(x) = [4, 15, 24, 31, 36, 39, 40, 39, 36, 31, 24, 15, 4]` | Hàm unimodal trên 13 điểm |
+
+**Output mong đợi:**
+
+```text
+Cực đại tại x = 6, f(6) = 40
+```
+
+## Ý tưởng
+
+```text
+while hi - lo > 2:
+    m1 = lo + (hi - lo) / 3
+    m2 = hi - (hi - lo) / 3
+    nếu f(m1) < f(m2): lo = m1 + 1
+    else:              hi = m2 - 1
+// đoạn còn lại ≤ 3 điểm — xét trực tiếp lấy max
+```
+
+Xem minh họa: mỗi cột là giá trị `f(x)`, hai ô xanh đậm là `m1`, `m2` đang so;
+ô xanh nhạt là đoạn đã bị loại vĩnh viễn:
+
+<ArrayVisualizer algorithm="ternarySearch" height={240} />
+
+Ba lưu ý thực chiến:
+
+1. **Nhị phân trên đạo hàm**: với hàm rời rạc, có thể nhị phân trực tiếp trên
+   dấu của `f(x+1) - f(x)` — thường ngắn code hơn tam phân.
+2. **Số thực**: chạy `for` 200 vòng lặp thay vì `while` khoảng cách — tránh
+   lặp vô hạn do sai số; `m1`, `m2` cần cách nhau đủ xa.
+3. **Chặt tam phân 2D**: cực trị của hàm `f(x, y)` — chặt x bằng tam phân,
+   trong mỗi x chặt y (mỗi tầng tốn ×log n).
+
+## Độ phức tạp
+
+| Trường hợp | Số lần gọi f | Ghi chú |
+| ---------- | ------------ | ------- |
+| Mỗi vòng lặp | 1–2 lần | So f(m1) với f(m2) |
+| Tổng cộng | O(log n) | Đoạn giảm 1/3 mỗi vòng |
+| Bộ nhớ | O(1) | Bốn biến lo, hi, m1, m2 |
+
+## Kết quả (Output)
+
+Chạy trực quan: sau mỗi bước, đoạn khả dĩ co còn 2/3 — các ô xanh nhạt (bên bị
+loại) không bao giờ được xét lại. Sau ~6 bước (13 → 8 → 5 → 3 → 3...) đoạn còn
+≤ 3 điểm, xét trực tiếp cho đỉnh x = 6, f = **40**. Vì sao loại an toàn? f(m1) <
+f(m2) nghĩa là ta còn đang ở "sườn lên" — đỉnh không thể nằm bên trái m1. Tổng
+cộng chỉ 2·log₁.₅(13) ≈ 10 lần so sánh thay vì 12 lần vét cạn; với n = 10⁹ là
+~60 so với 10⁹.
+
+## Code mẫu
+
+```cpp
+// f: hàm unimodal nguyên trên [lo..hi] — trả về vị trí đạt max
+int ternary_max(auto f, int lo, int hi) {
+    while (hi - lo > 2) {
+        int m1 = lo + (hi - lo) / 3;
+        int m2 = hi - (hi - lo) / 3;
+        if (f(m1) < f(m2)) lo = m1 + 1;
+        else hi = m2 - 1;
+    }
+    int best = lo;
+    for (int x = lo; x <= hi; x++) if (f(x) > f(best)) best = x;
+    return best;
+}
+```
+
+```python
+def ternary_max(f, lo, hi):
+    while hi - lo > 2:
+        m1 = lo + (hi - lo) // 3
+        m2 = hi - (hi - lo) // 3
+        if f(m1) < f(m2):
+            lo = m1 + 1
+        else:
+            hi = m2 - 1
+    return max(range(lo, hi + 1), key=f)
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Factory Machines](https://cses.fi/problemset/task/1620) | CSES | Nhị phân kết quả (so sánh với tam phân) |
+| [Set of Strangers](https://codeforces.com/problemset/problem/1436/C) | Codeforces | Nhận diện hàm unimodal |
+| [Road Optimization](https://codeforces.com/problemset/problem/1625/C) | Codeforces | Tam phân trên đáp án |
+
+## Đọc thêm
+
+- [Tìm kiếm tam phân (Ternary Search)](https://vnoi.info/wiki/translate/emaxx/Tim-kiem-tam-phan-Ternary-Search.md)
+  trên VNOI Wiki — nguồn đối chiếu của bài này.

@@ -1,0 +1,147 @@
+---
+title: Thành phần liên thông mạnh (SCC)
+category: Lý thuyết đồ thị
+description: Thuật toán Kosaraju tìm thành phần liên thông mạnh — 2 lượt DFS trên đồ thị gốc và đồ thị đảo; minh họa trực quan việc gom đỉnh thành các SCC.
+---
+
+## Định nghĩa
+
+**Thành phần liên thông mạnh (SCC)**: tập đỉnh lớn nhất mà từ đỉnh bất kỳ trong
+tập **đi tới được mọi đỉnh khác trong tập** (đồ thị có hướng). Thuật toán:
+
+- **Kosaraju**: DFS lượt 1 ghi **thứ tự kết thúc**; đảo chiều mọi cạnh; DFS
+  lượt 2 theo thứ tự kết thúc **giảm dần** — mỗi lần DFS là một SCC. O(V + E).
+- **Tarjan**: 1 lượt DFS với mảng low-link — O(V + E), khó cài hơn.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Đồ thị có hướng 6 đỉnh: 0→1→2→0 (chu trình), 2→3, 3→4→3 (chu trình), 4→5 | Tìm mọi SCC |
+
+**Output mong đợi:**
+
+```text
+3 SCC: {0, 1, 2}, {3, 4}, {5}
+```
+
+## Ý tưởng
+
+```text
+1) DFS lượt 1 trên đồ thị gốc: ghi thứ tự KẾT THÚC của mỗi đỉnh
+2) Đảo chiều mọi cạnh
+3) Xét đỉnh theo thứ tự kết thúc GIẢM dần, mỗi lần DFS chưa thăm:
+      tất cả đỉnh DFS chạm tới = một SCC
+```
+
+Trực giác: sau khi đảo cạnh, các đỉnh cùng SCC vẫn đi tới nhau được (SCC không
+đổi khi đảo cạnh), nhưng **liên thông giữa các SCC bị đảo ngược** — DFS từ
+"nguồn mới" không lọt ra SCC khác:
+
+<GraphVisualizer algorithm="scc" height={300} />
+
+Ba điểm đáng nhớ:
+
+1. **Số SCC = số lần DFS** ở lượt 2 — mỗi lần chốt một SCC, tô đậm trên hình.
+2. **Đồ thị co lại** (condensation): thay mỗi SCC bằng 1 đỉnh ⇒ DAG — mở đường
+   cho DP trên DAG (bài "đường đi qua nhiều SCC").
+3. Kosaraju cần **2 lần lưu đồ thị** (gốc + đảo); Tarjan chỉ 1 lần nhưng dùng
+   đệ quy sâu — đồ thị 10⁵ đỉnh nên khử đệ quy.
+
+## Kết quả (Output)
+
+Lượt 1 (đồ thị gốc) cho thứ tự kết thúc; lượt 2 (đồ thị đảo) DFS từ đỉnh kết
+thúc muộn nhất: chốt **C1 = {0, 1, 2}** (chu trình 0→1→2→0 giữ nguyên tính liên
+thông khi đảo), rồi **C2 = {3, 4}** (chu trình 3→4→3), rồi **C3 = {5}** (đỉnh
+độc — không ai quay lại được 5). Ba SCC đúng như Input mẫu. Nhìn trực quan:
+trong mỗi lần chốt, các đỉnh cùng màu là cùng SCC; giữa hai SCC luôn có hướng
+"một chiều" — đó là thứ tự tô pô của đồ thị co.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<vector<int>> adj, radj;
+vector<bool> vis;
+vector<int> order, comp;
+
+void dfs1(int u) {
+    vis[u] = true;
+    for (int v : adj[u]) if (!vis[v]) dfs1(v);
+    order.push_back(u);                       // thứ tự kết thúc
+}
+
+void dfs2(int u) {
+    vis[u] = true;
+    comp.push_back(u);
+    for (int v : radj[u]) if (!vis[v]) dfs2(v);
+}
+
+int main() {
+    int n = 6;
+    adj.assign(n, {}); radj.assign(n, {});
+    for (auto [u, v] : vector<pair<int,int>>{{0,1},{1,2},{2,0},{2,3},{3,4},{4,3},{4,5}}) {
+        adj[u].push_back(v);
+        radj[v].push_back(u);                 // đồ thị đảo
+    }
+    vis.assign(n, false);
+    for (int i = 0; i < n; i++) if (!vis[i]) dfs1(i);
+
+    vis.assign(n, false);
+    reverse(order.begin(), order.end());
+    for (int u : order) if (!vis[u]) {
+        comp.clear();
+        dfs2(u);
+        cout << "SCC: "; for (int v : comp) cout << v << ' '; cout << '\n';
+    }
+    return 0;
+}
+```
+
+```python
+import sys
+sys.setrecursionlimit(10**6)
+
+def kosaraju(adj, n):
+    radj = [[] for _ in range(n)]
+    for u in range(n):
+        for v in adj[u]:
+            radj[v].append(u)
+    vis = [False] * n
+    order = []
+    def dfs1(u):
+        vis[u] = True
+        for v in adj[u]:
+            if not vis[v]: dfs1(v)
+        order.append(u)
+    for i in range(n):
+        if not vis[i]: dfs1(i)
+    vis = [False] * n
+    sccs = []
+    for u in reversed(order):
+        if not vis[u]:
+            comp, stack = [], [u]
+            vis[u] = True
+            while stack:
+                x = stack.pop()
+                comp.append(x)
+                for v in radj[x]:
+                    if not vis[v]: vis[v] = True; stack.append(v)
+            sccs.append(comp)
+    return sccs
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Flight Routes Check](https://cses.fi/problemset/task/1682) | CSES | Kiểm tra liên thông mạnh |
+| [Grid Paths — 2SAT](https://oj.vnoi.info/problem/twosat) | VNOJ | SCC + 2-SAT |
+| [Provinggrounds](https://oj.vnoi.info/problem/scc) | VNOJ | Đồ thị co |
+
+## Đọc thêm
+
+- Kết hợp bài này với [Sắp xếp tô pô](https://vnoi.info/wiki/algo/graph-theory/topological-sort.md)
+  trên VNOI Wiki để xử lý DP trên đồ thị co.

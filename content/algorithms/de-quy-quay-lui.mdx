@@ -1,0 +1,200 @@
+---
+title: Đệ quy & Quay lui cơ bản
+category: Kỹ thuật cơ bản
+description: Recursion và Backtracking — xây dựng lời giải bằng các trường hợp cơ sở, quay lui khi nhánh chọn sai đường, minh họa bằng cột đệ quy chạy từng bước.
+---
+
+## Định nghĩa
+
+**Đệ quy** là cách giải quyết bài toán bằng cách gọi chính bài toán đó với dữ
+liệu nhỏ hơn, cho tới khi chạm một **trường hợp cơ sở** (base case) giải được
+ngay. Một hàm đệ quy chuẩn luôn có hai phần:
+
+- **Trường hợp cơ sở**: điểm dừng — ví dụ `n == 0` khi tính giai thừa, hay khi
+  đã chọn đủ `n` vị trí của một hoán vị.
+- **Phần đệ quy**: biến đổi bài toán thành các bài toán con cùng dạng.
+
+**Quay lui** (backtracking) là đệ quy + "thử – gỡ": tại mỗi bước ta thử từng
+lựa chọn khả dĩ, đi sâu tiếp; khi thấy nhánh hiện tại **không thể dẫn tới lời
+giải** (hoặc đã thử hết các nhánh con), ta **gỡ lựa chọn vừa rồi** và thử lựa
+chọn khác. Quay lui chính là cách duyệt có hệ thống toàn bộ không gian lời giải.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| `n = 4` | Sinh toàn bộ hoán vị của tập {1, 2, 3, 4} |
+
+**Output mong đợi** — 24 dòng, đúng thứ tự quay lui sinh ra (nhánh trái nhất
+trước):
+
+```text
+1 2 3 4
+1 2 4 3
+1 3 2 4
+...
+4 3 2 1
+```
+
+## Ý tưởng
+
+Ví dụ kinh điển: **sinh tất cả hoán vị của {1..n}**. Tư duy:
+
+1. Ở tầng đệ quy `pos`, thử gán từng giá trị `v` **chưa được dùng** vào vị trí
+   `pos`.
+2. Gán xong → gọi đệ quy cho `pos + 1`.
+3. Khi `pos == n`: chọn đủ rồi — ghi nhận một hoán vị.
+4. Quay về: **gỡ** `v` khỏi `pos` (trả trạng thái về như cũ) để vị trí này thử
+   giá trị khác.
+
+Số hoán vị là `n!` — với n = 4 là 24, vừa đủ để xem trọn vẹn cây đệ quy mà
+không bị choáng. Cùng một khung này giải sinh tổ hợp, N-quân hậu, giải Sudoku…
+
+```text
+function gen(pos):
+    nếu pos == n: ghi nhận đáp án; return
+    với mỗi v trong 1..n chưa dùng:
+        đánh dấu v đã dùng; cur[pos] = v
+        gen(pos + 1)                 // đi sâu
+        gỡ đánh dấu v; cur[pos] = 0  // QUAY LUI
+```
+
+Xem minh họa bên dưới — **cột phải là các tầng đệ quy hiện tại** (giống một
+ngăn xếp stack): mỗi lần "Đẩy vào" là một lời gọi đệ quy mới, mỗi lần "Lấy ra"
+là một lần quay lui gỡ lựa chọn; các ô tròn bên phải cho biết giá trị 1..n
+đang được dùng ở nhánh hiện tại.
+
+<ArrayVisualizer algorithm="permutations" height={300} />
+
+Ba điều đáng chú ý khi xem:
+
+1. Cột đệ quy **cao lên rồi hạ xuống** liên tục: chiều cao tối đa đúng bằng n —
+   chính là độ sâu bộ nhớ stack của hàm.
+2. Mỗi lần quay lui, trạng thái (`used`, `cur`) phải trở về **chính xác** như
+   trước khi thử — quên gỡ một đánh dấu là sinh sai kết quả, lỗi kinh điển
+   nhất của người mới học quay lui.
+3. Sau khi ghi nhận một hoán vị (bước "Đánh dấu"), thuật toán vẫn quay lui tiếp
+   để tìm các hoán vị còn lại — vét cạn có nghĩa là duyệt **hết** không gian.
+
+## Xem cây đệ quy
+
+Cùng một lần chạy nhìn theo góc khác: **cây không gian trạng thái** — gốc là
+lời gọi rỗng, mỗi tầng chọn một giá trị chưa dùng, mỗi lá là một hoán vị. Nút
+xanh đậm là đường đi hiện tại, nút xanh nhạt là các lá đã chốt output:
+
+<TreeVisualizer algorithm="recursionTree" height={340} />
+
+Nhìn cây sẽ thấy ngay hai sự thật:
+
+1. **Tổng số nút = tổng số lời gọi** chương trình thực sự chạy — với n = 3 là
+   16 lời gọi (1 + 3 + 6 + 6). n càng lớn cây nở theo n!, đây là lý do quay lui
+   chỉ dùng được khi n nhỏ.
+2. **Nhánh bị cắt sớm** (giá trị đã dùng) không bao giờ sinh con — chính là
+   "cắt tỉa". Mọi tối ưu quay lui về bản chất là tìm thêm điều kiện để cắt
+   nhánh sớm hơn.
+
+## Kết quả (Output)
+
+Chương trình trên với input `4` in ra đúng 24 dòng như mục Input mẫu. Vì sao
+thứ tự là `1 2 3 4` trước rồi mới `1 2 4 3`? Vì vòng `for v = 1..n` thử giá trị
+**tăng dần**: chọn 1 → đi sâu chọn 2 → chọn 3 → lá đầu tiên `1 2 3 4`; quay lui
+tầng cuối đổi 3 thành 4 ra `1 2 4 3`; ... khi nhánh "1..." cạn hết mới tới nhánh
+"2...". Thứ tự in ra chính là **thứ tự DFS từ trái sang phải trên cây đệ quy**.
+
+Vì sao dùng đệ quy thay vì lặp lồng nhau? Vì số tầng lặp của bài sinh tổ hợp
+**không biết trước** (phụ thuộc n). Đệ quy biến "n vòng lặp lồng nhau" thành
+một hàm ngắn gọn gọi chính nó.
+
+## Độ phức tạp
+
+| Bài toán | Số cấu hình duyệt | Ghi chú |
+| -------- | ------------------ | ------- |
+| Sinh hoán vị | O(n!) | n = 10 đã là ~3,6 triệu |
+| Sinh tập con | O(2ⁿ) | Mỗi phần tử: chọn hoặc không |
+| N-quân hậu | ≤ n! nhánh | Kèm tỉa nhánh theo cột/đường chéo |
+
+- **Bộ nhớ**: O(độ sâu đệ quy) cho stack hàm — với bài trên là O(n).
+- Quy tắc thực tế: `n ≤ 10–11` cho n!, `n ≤ 20–25` cho 2ⁿ — nhìn ràng buộc đề
+  bài là biết có nên dùng quay lui hay không.
+- Khi không gian trạng thái quá lớn nhưng có tính chất "bài con lặp lại", ta
+  chuyển sang **đệ quy có nhớ** (memoization) — tức quy hoạch động.
+
+## Code mẫu
+
+C++ — sinh và in tất cả hoán vị:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int n;
+vector<int> cur;
+vector<bool> used;
+
+void gen(int pos) {
+    if (pos == n) {                       // trường hợp cơ sở: đủ n vị trí
+        for (int x : cur) cout << x << ' ';
+        cout << '\n';
+        return;
+    }
+    for (int v = 1; v <= n; v++) {        // thử từng giá trị chưa dùng
+        if (used[v]) continue;
+        used[v] = true; cur.push_back(v); // chọn
+        gen(pos + 1);                     // đi sâu
+        used[v] = false; cur.pop_back();  // QUAY LUI — gỡ lựa chọn
+    }
+}
+
+int main() {
+    cin >> n;
+    cur.reserve(n);
+    used.assign(n + 1, false);
+    gen(0);
+    return 0;
+}
+```
+
+Python:
+
+```python
+def permutations(n):
+    cur, used = [], [False] * (n + 1)
+
+    def gen(pos):
+        if pos == n:
+            print(*cur)
+            return
+        for v in range(1, n + 1):
+            if used[v]:
+                continue
+            used[v] = True
+            cur.append(v)          # chọn
+            gen(pos + 1)           # đi sâu
+            used[v] = False        # quay lui
+            cur.pop()
+
+    gen(0)
+
+
+permutations(4)
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Contest backtrack trên VNOJ](https://oj.vnoi.info/contest/backtrack) | VNOJ | Bộ bài quay lui được chọn sẵn theo chủ đề |
+| [MNS](https://community.topcoder.com/stat?c=problem_statement&pm=1744&rd=4545) | Topcoder | Sinh hoán vị + loại trừ cấu hình trùng |
+| [Bridge Crossing](https://community.topcoder.com/stat?c=problem_statement&pm=1599&rd=4535) | Topcoder | Quay lui tối ưu có nhớ |
+| [Weird Rooks](https://community.topcoder.com/stat?c=problem_statement&pm=3998&rd=6533) | Topcoder | Duyệt tổ hợp trên bàn cờ + đếm |
+
+Gợi ý luyện tay: tự viết chương trình quay lui giải một bảng Sudoku bất kỳ
+(lấy đề trên sudoku.com) — đúng khung "thử–gỡ" như bài học, chỉ khác điều kiện
+ràng buộc.
+
+## Đọc thêm
+
+- Bài [Đệ quy và Thuật toán quay lui](https://vnoi.info/wiki/algo/basic/backtracking)
+  trên VNOI Wiki (tác giả Nguyễn Đức Kiên) — nguồn đối chiếu thuật ngữ của bài
+  này; có ví dụ tính giai thừa, Fibonacci và bài tập tối ưu "mua kẹo" với cắt
+  tỉa chi tiết.

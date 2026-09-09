@@ -1,0 +1,116 @@
+---
+title: Phân tích độ phức tạp
+category: Kỹ năng ngôn ngữ & Nền tảng
+description: Big-O notation — cách đếm thao tác, đọc ràng buộc đề bài để đoán độ phức tạp cần thiết và tránh TLE trong thi HSG.
+---
+
+## Định nghĩa
+
+**Độ phức tạp thời gian** O(f(n)) là cấp độ tăng của số thao tác khi kích thước
+dữ liệu n tăng — bỏ qua hằng số và các số hạng nhỏ. Đây là "hợp đồng" giữa
+thuật toán của bạn và giới hạn thời gian của đề.
+
+Các mốc cần thuộc:
+
+| Ký hiệu | Tên | Ví dụ |
+| ------- | --- | ----- |
+| O(1) | Hằng | Truy cập `a[i]` |
+| O(log n) | Logarit | Tìm kiếm nhị phân |
+| O(√n) | Căn | Thử chia kiểm tra nguyên tố |
+| O(n) | Tuyến | Duyệt mảng một lần |
+| O(n log n) | Tuyến-log | Sort, merge sort |
+| O(n²) | Bình phương | Hai vòng lặp n |
+| O(2ⁿ) | Mũ | Quay lui toàn bộ tập con |
+| O(n!) | Giai thừa | Hoán vị |
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| `n = 10⁶`, thời gian 1s, khoảng 10⁸ thao tác/giây | Thuật toán nào kịp chạy? |
+
+**Output mong đợi (dự đoán TLE):**
+
+```text
+O(n)       ≈ 10⁶ thao tác  → chạy được
+O(n log n) ≈ 2·10⁷         → chạy được
+O(n²)      ≈ 10¹²          → TLE (chậm hơn 10⁴ lần)
+```
+
+## Ý tưởng — đọc ràng buộc để đoán thuật toán
+
+Quy tắc 10⁸ thao tác/giây (C++, tối ưu vừa phải):
+
+```text
+n ≤ 12       → O(n!) hoặc O(2ⁿ·n) quay lui được
+n ≤ 25       → O(2ⁿ) bitmask/quay lui có cắt tỉa
+n ≤ 5 000    → O(n²) hai vòng lặp
+n ≤ 10⁵      → O(n log n) — sort hoặc cấu trúc dữ liệu
+n ≤ 10⁶–10⁷  → O(n) tuyến tính
+n lớn, truy vấn nhiều → O((n + q) log n) hay O(1)/truy vấn sau tiền xử lý
+```
+
+Minh họa cảm giác tăng trưởng: với cùng một "thuật toán" duyệt, số thao tác
+của mỗi vòng lặp lồng thêm một tầng tăng theo cấp — đây là lý do một vòng lặp
+nhiều khi sống, hai vòng lặp chết ngay:
+
+<ArrayVisualizer algorithm="array1d" height={200} />
+
+## Kết quả (Output)
+
+Visualizer trên hiển thị một "lượt duyệt" tuyến tính — mỗi ô sáng lên đúng một
+lần, tổng thao tác = n. Nếu nhân bản thành bảng 2 chiều (mỗi ô duyệt cả hàng),
+số thao tác là n² — con số này quyết định sống còn: n = 10⁶, O(n) = 10⁶ thao
+tác (0,01 giây); O(n²) = 10¹² thao tác (~3 giờ) ⇒ TLE chắc chắn. Đó là lý do
+"nhìn ràng buộc đề trước khi viết code" là kỹ năng sinh tồn số 1 của thi HSG.
+
+Ba sai lầm cần né:
+
+1. **Đếm "vòng lặp" thay vì "thao tác"**: vòng lặp while giảm n/2 mỗi lần là
+   O(log n), dù nhìn "một vòng".
+2. **Quên độ phức tạp của hàm gọi trong vòng lặp**: `sort` bên trong vòng lặp n
+   lần là O(n² log n), không phải O(n log n).
+3. **Quên bộ nhớ**: bảng `int a[5000][5000]` là 100 MB — trúng MLE dù thời gian
+   có qua. Bộ nhớ 256 MB ≈ 6·10⁷ số `int`.
+
+## Code mẫu
+
+Cùng bài toán "tìm cặp có tổng S" — hai cách với độ phức tạp khác nhau:
+
+```cpp
+// Cách 1: O(n²) — n ≤ 5000 mới kịp
+for (int i = 0; i < n; i++)
+    for (int j = i + 1; j < n; j++)
+        if (a[i] + a[j] == S) { cout << i << ' ' << j; return 0; }
+
+// Cách 2: O(n log n) — sort rồi hai con trỏ, n ≤ 10⁶ vẫn nhẹ
+sort(a, a + n);
+int l = 0, r = n - 1;
+while (l < r) {
+    if (a[l] + a[r] == S) { cout << l << ' ' << r; return 0; }
+    if (a[l] + a[r] < S) l++; else r--;
+}
+```
+
+```python
+# O(n) bằng tập hợp — đổi bộ nhớ lấy thời gian
+seen = set()
+for x in a:
+    if S - x in seen:
+        print("FOUND")
+        break
+    seen.add(x)
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Distinct Numbers](https://cses.fi/problemset/task/1621) | CSES | O(n log n) với set/sort |
+| [Ferris Wheel](https://cses.fi/problemset/task/1090) | CSES | Nhận diện hai con trỏ O(n log n) |
+| [Room Allocation](https://cses.fi/problemset/task/1164) | CSES | Sự kiện + cấu trúc O(n log n) |
+
+## Đọc thêm
+
+- [Phân tích độ phức tạp thuật toán](https://vnoi.info/wiki/algo/basic/computational-complexity.md)
+  trên VNOI Wiki — nguồn đối chiếu của bài này.

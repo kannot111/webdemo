@@ -1,0 +1,180 @@
+---
+title: Mảng cộng dồn & Mảng hiệu
+category: Kỹ thuật cơ bản
+description: Prefix Sum và Difference Array — trả lời truy vấn tổng đoạn trong O(1) sau khi dựng mảng cộng dồn một hoặc hai chiều, minh họa từng bước ngay trong web.
+---
+
+## Định nghĩa
+
+Cho mảng `a[0..n-1]`. **Mảng cộng dồn** (prefix sum) `pre` được dựng sao cho
+`pre[i]` = tổng của `i` phần tử đầu tiên, tức `pre[i] = a[0] + a[1] + … + a[i-1]`,
+với quy ước `pre[0] = 0` (viền gốc). Nhờ viền này, mọi công thức đều không cần
+xử lý trường hợp biên riêng.
+
+**Mảng hiệu** (difference array) là "chiều ngược lại": `d[i] = a[i+1] - a[i]`.
+Nó hữu ích khi bài toán yêu cầu **cộng một lượng `k` lên cả đoạn `[l..r]` nhiều
+lần** rồi mới hỏi giá trị: ta chỉ cần `d[l] += k`, `d[r+1] -= k`, sau đó cộng
+dồn ngược lại để phục hồi mảng — mỗi thao tác đoạn tốn O(1) thay vì O(n).
+
+Bài này tập trung vào mảng cộng dồn; mảng hiệu sẽ được đi kèm trong phần mở rộng.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Mảng `[3, 1, 4, 1, 5]`, truy vấn tổng `[2..4]` | Trả lời tức thì sau khi dựng mảng cộng dồn |
+| Bảng 2D truy vấn tổng hình chữ nhật | Phần mở rộng 2 chiều |
+
+**Output mong đợi:**
+
+```text
+Tổng a[2..4] = 4 + 1 + 5 = 10
+```
+
+## Ý tưởng
+
+Câu hỏi then chốt: làm sao trả lời **"tổng đoạn `[l..r]` bằng bao nhiêu?"** cho
+hàng nghìn truy vấn mà không phải cộng lại từng phần tử mỗi lần?
+
+Quan sát: tổng đoạn `[l..r]` = (tổng `[0..r]`) − (tổng `[0..l-1]`). Nếu ta
+tính sẵn toàn bộ các tổng tiền tố một lần duyệt O(n), mỗi truy vấn về sau chỉ
+còn là **một phép trừ**, chạy O(1):
+
+```text
+pre[0] = 0
+pre[i] = pre[i-1] + a[i-1]        (dựng, O(n))
+sum(l, r) = pre[r+1] - pre[l]     (truy vấn, O(1))
+```
+
+Xem minh họa: mỗi bước ghi một ô mới của `pre` (ô 0 là viền), sau đó bài toán
+mẫu hỏi tổng `a[2..6]` — chú ý chỉ có **hai ô** `pre[7]` và `pre[2]` tham gia.
+
+<ArrayVisualizer algorithm="prefixSum1D" height={260} />
+
+### Mở rộng sang hai chiều
+
+Với bảng `a` kích thước `n×m`, dựng `pre[i][j]` = tổng hình chữ nhật từ `(0,0)`
+đến `(i-1, j-1)` bằng công thức bao hàm — loại trừ:
+
+```text
+pre[i][j] = pre[i-1][j] + pre[i][j-1] - pre[i-1][j-1] + a[i-1][j-1]
+```
+
+(không gian bên trái cộng với không gian phía trên — phần góc trên-trái bị
+đếm hai lần nên phải trừ đi một lần — rồi cộng thêm ô hiện tại.)
+
+Truy vấn hình chữ nhật `(r1,c1) → (r2,c2)`:
+
+```text
+sum = pre[r2+1][c2+1] - pre[r1][c2+1] - pre[r2+1][c1] + pre[r1][c1]
+```
+
+Minh họa trên bảng 3×4: trước hết dựng từng ô (mỗi bước thấy rõ "trên + trái −
+chéo + a"), sau đó truy vấn góc phải-dưới dùng đúng bốn ô như công thức.
+
+<MatrixVisualizer algorithm="prefixSum2D" height={320} />
+
+## Độ phức tạp
+
+| Thao tác | Một chiều | Hai chiều |
+| -------- | --------- | --------- |
+| Dựng mảng cộng dồn | O(n) | O(n·m) |
+| Một truy vấn tổng đoạn | O(1) | O(1) |
+| Bộ nhớ | O(n) | O(n·m) |
+
+Điều kiện để áp dụng: **không có cập nhật giữa các truy vấn** (hoặc mọi cập nhật
+xảy ra trước mọi truy vấn). Nếu cần vừa cập nhật vừa hỏi trên đoạn, hãy dùng
+Cây Fenwick hoặc Cây phân đoạn.
+
+## Kết quả (Output)
+
+Mảng cộng dồn sau khi dựng (P[0] = 0): P = [0, 3, 4, 8, 9, 14]. Truy vấn
+`[2..4]` = P[4] − P[1] = 14 − 4 = **10** ✓ (a[2..4] = 4 + 1 + 5). Trực quan:
+đáp án chỉ cần **2 phép trừ** bất kể đoạn dài bao nhiêu — P[j+1] giữ tổng mọi
+phần tử trước j, chỉ cần cắt phần thừa P[l]. q truy vấn trên mảng n phần tử:
+O(n) dựng + O(1)/truy vấn thay vì O(n·q) vét cạn.
+
+## Code mẫu
+
+C++ — dựng prefix sum 1D và 2D:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n;
+    cin >> n;
+    vector<long long> a(n);
+    for (auto &x : a) cin >> x;
+
+    // pre[i] = tổng i phần tử đầu; pre[0] là viền 0
+    vector<long long> pre(n + 1, 0);
+    for (int i = 0; i < n; i++) pre[i + 1] = pre[i] + a[i];
+
+    // Trả lời nhiều truy vấn sum(l, r) với l, r đánh số từ 0
+    int q;
+    cin >> q;
+    while (q--) {
+        int l, r;
+        cin >> l >> r;
+        cout << pre[r + 1] - pre[l] << '\n';
+    }
+    return 0;
+}
+```
+
+C++ — mảng hiệu: cộng `k` lên đoạn `[l..r]`, phục hồi sau cùng:
+
+```cpp
+vector<long long> d(n + 1, 0);       // mảng hiệu với viền
+while (m--) {                        // m thao tác cộng đoạn
+    int l, r; long long k;
+    cin >> l >> r >> k;
+    d[l] += k; d[r + 1] -= k;        // O(1) mỗi thao tác
+}
+for (int i = 0; i < n; i++)          // cộng dồn ngược phục hồi mảng
+    d[i + 1] += d[i];
+```
+
+Python:
+
+```python
+import itertools
+
+def prefix_sum(a):
+    pre = [0]
+    for x in a:
+        pre.append(pre[-1] + x)
+    return pre
+
+def query(pre, l, r):        # tổng a[l..r], 0-based
+    return pre[r + 1] - pre[l]
+
+n, q = map(int, input().split())
+a = list(map(int, input().split()))
+pre = prefix_sum(a)
+for _ in range(q):
+    l, r = map(int, input().split())
+    print(query(pre, l, r))
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [NKSEQ](https://oj.vnoi.info/problem/nkseq) | VNOJ | Nhận ra bài cần tổng tiền tố vòng tròn |
+| [Subarray Sums II](https://cses.fi/problemset/task/1661) | CSES | Kết hợp prefix sum + đếm bằng map |
+| [Subarray Divisibility](https://cses.fi/problemset/task/1662) | CSES | Tính chất của phần dư khi chia cho n |
+| [Good Subarrays](https://codeforces.com/contest/1398/problem/C) | Codeforces | Trừ đi chỉ số để đưa về đếm cặp bằng nhau |
+| [Little Girl and Maximum Sum](https://codeforces.com/problemset/problem/276/C) | Codeforces | Mảng hiệu đếm tần suất đoạn + sắp xếp tham lam |
+| [Greg and Array](https://codeforces.com/contest/296/problem/C) | Codeforces | Hai tầng mảng hiệu (thao tác lồng nhau) |
+| [Forest Queries](https://cses.fi/problemset/task/1652) | CSES | Prefix sum 2D trên lưới |
+| [MAXCUB](https://oj.vnoi.info/problem/maxcub) | VNOJ | Khối lập phương có tổng lớn nhất — prefix sum 3D |
+
+## Đọc thêm
+
+- Phân tích sâu hai chiều và mảng động: bài
+  [Mảng cộng dồn và mảng hiệu](https://vnoi.info/wiki/algo/data-structures/prefix-sum-and-difference-array.md)
+  trên VNOI Wiki (tác giả Bùi Nguyễn Đức Tân) — nguồn đối chiếu thuật ngữ của bài này.
+- VNOJ có [thẻ prefix_sum](https://oj.vnoi.info/tags/?tag_id=prefix_sum) tổng hợp thêm nhiều bài luyện tập.

@@ -1,0 +1,135 @@
+---
+title: QHD trên cây
+category: Quy hoạch động
+description: QHD trên cây — dp[u][0/1] tính khi con trở về (post-order), bài tổ hợp độc lập có trọng số; minh họa bằng TreeVisualizer trên cây thật.
+---
+
+## Định nghĩa
+
+**QHD trên cây** tính trạng thái của mỗi đỉnh **từ con trở về** (post-order).
+Đệ quy DFS là khung tự nhiên: khi đỉnh u "trở về" từ tất cả con, gộp các dp con
+lại thành dp[u].
+
+Bài kinh điển: **tổ hợp độc lập có trọng số** — chọn tập đỉnh không có cặp nào
+kề nhau, tổng trọng số lớn nhất:
+
+- `dp[u][0]` = giá trị lớn nhất của cây con gốc u **không chọn** u.
+- `dp[u][1]` = ... **có chọn** u.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Cây 7 đỉnh gốc 0: 0–1, 0–2, 1–3, 1–4, 2–5, 5–6 | Cấu trúc cây |
+| Trọng số: w(0)=4, w(1)=7, w(2)=2, w(3)=9, w(4)=1, w(5)=8, w(6)=3 | Trọng số từng đỉnh |
+
+**Output mong đợi:**
+
+```text
+Chọn tập độc lập có trọng số lớn nhất = 18
+(đáp án do player truy vết — xem nhãn dp của đỉnh 0)
+```
+
+## Ý tưởng
+
+```text
+dfs(u, cha):
+    dp[u][1] = w[u]                          // chọn u: chỉ được chọn con không kề... 
+    dp[u][0] = 0
+    với mỗi con v của u:
+        dfs(v, u)                            // con trở về với dp[v][0..1] xong
+        dp[u][0] += max(dp[v][0], dp[v][1])  // u không chọn: con tự do
+        dp[u][1] += dp[v][0]                 // u chọn: con bắt buộc không chọn
+đáp án = max(dp[0][0], dp[0][1])
+```
+
+Xem trực quan: nhãn mỗi đỉnh là `dp0/dp1` cập nhật đúng lúc con trở về — nút
+xanh đậm là đỉnh vừa hoàn tất:
+
+<TreeVisualizer algorithm="treeDp" height={330} />
+
+Ba điểm đáng nhớ:
+
+1. **Truy vết** từ max(dp[0][0], dp[0][1]) xuống: tại mỗi đỉnh nhìn dấu "+" để
+   biết con được chọn theo trạng thái nào.
+2. **Ràng buộc trên cặp cha-con**: ngoài bài này, cùng khung giải "chọn cây con
+   với số đỉnh đúng k", "phủ đỉnh nhỏ nhất", "đường đi dài nhất trên cây".
+3. **Rerooting** (kỹ thuật đổi gốc): tính dp cho MỌI đỉnh làm gốc trong O(n) —
+   bài nâng cao của nhóm này.
+
+## Kết quả (Output)
+
+Đi từ lá lên: lá 3 có dp = 0/9 (không chọn: 0; chọn: 9); lá 4 = 0/1; lá 6 =
+0/3. Đỉnh 1 (con 3, 4): dp[1][0] = max(0,9) + max(0,1) = 10; dp[1][1] = 7 + 0
++ 0 = 7. Đỉnh 5 (con 6): dp[5][0] = max(0,3) = 3; dp[5][1] = 8. Đỉnh 2 (con 5):
+dp[2][0] = max(3, 8) = 8; dp[2][1] = 2 + 3 = 5. Gốc 0 (con 1, 2): dp[0][0] =
+max(10, 7) + max(8, 5) = 10 + 8 = **18**; dp[0][1] = 4 + 10 + 3 = 17. Kết quả
+max(18, 17) = **18** — tập chọn là {3, 4, 5}: 9 + 1 + 8 = 18, không có cặp kề
+nào. Trực quan: nhãn `dp0` của gốc = 18 chính là con số kết quả — và bạn thấy
+mỗi đỉnh được cập nhật đúng một lần theo thứ tự "con xong → cha tính" (thứ tự
+post-order), vì vậy tổng thời gian O(n).
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+vector<vector<int>> adj;
+vector<array<long long,2>> dp;
+vector<int> w;
+
+void dfs(int u, int p) {
+    dp[u][1] = w[u];
+    for (int v : adj[u]) if (v != p) {
+        dfs(v, u);
+        dp[u][0] += max(dp[v][0], dp[v][1]);
+        dp[u][1] += dp[v][0];
+    }
+}
+
+int main() {
+    int n = 7;
+    w = {4, 7, 2, 9, 1, 8, 3};
+    adj.assign(n, {});
+    for (auto [u, v] : vector<pair<int,int>>{{0,1},{0,2},{1,3},{1,4},{2,5},{5,6}}) {
+        adj[u].push_back(v); adj[v].push_back(u);
+    }
+    dp.assign(n, {0, 0});
+    dfs(0, -1);
+    cout << max(dp[0][0], dp[0][1]) << '\n';
+    return 0;
+}
+```
+
+```python
+import sys
+sys.setrecursionlimit(10**6)
+
+def solve(n, adj, w):
+    dp = [[0, 0] for _ in range(n)]
+    def dfs(u, p):
+        dp[u][1] = w[u]
+        for v in adj[u]:
+            if v != p:
+                dfs(v, u)
+                dp[u][0] += max(dp[v][0], dp[v][1])
+                dp[u][1] += dp[v][0]
+    dfs(0, -1)
+    return max(dp[0])
+
+# Cây mẫu: 0-1, 0-2, 1-3, 1-4, 2-5, 5-6; trọng số như trên
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Tree Matching](https://cses.fi/problemset/task/1139) | CSES | Cặp ghép trên cây |
+| [Tree Diameter](https://cses.fi/problemset/task/1131) | CSES | Đường đi dài nhất trên cây |
+| [Company Queries](https://cses.fi/problemset/task/1687) | CSES | Cấu trúc cây + tổ tiên |
+
+## Đọc thêm
+
+- [QHD trên cây](https://vnoi.info/wiki/algo/dp/treedp.md) trên VNOI Wiki —
+  nguồn đối chiếu của bài này.

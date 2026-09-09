@@ -1,0 +1,123 @@
+.frame {
+  flex: 0 0 220px;
+  border-left: 1px solid var(--border);
+  background: var(--bg-soft);
+  padding: 12px 14px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  color: var(--text-faint);
+}
+
+.chipUsed {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.chipFree {
+  background: var(--bg);
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.base {
+  border-color: var(--border);
+}
+
+.active {
+  border-color: var(--accent-soft);
+  background: var(--accent-faint);
+}
+
+.focus {
+  border-color: var(--accent);
+  background: var(--accent-faint);
+}
+
+.settled {
+  border-color: var(--accent-soft);
+  background: #fff;
+}
+
+.depth {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+.cell {
+  min-width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  border: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.cell_active {
+  border-color: var(--accent-soft);
+  color: var(--accent);
+}
+
+.cell_focus {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.cell_settled {
+  border-color: var(--accent-soft);
+  background: var(--accent-faint);
+  color: var(--accent);
+}
+
+.cell_base {
+  color: var(--text);
+}
+
+.empty {
+  font-size: 0.8rem;
+  color: var(--text-faint);
+  margin: 4px 0;
+}

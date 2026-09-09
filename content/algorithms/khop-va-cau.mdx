@@ -1,0 +1,138 @@
+---
+title: Khớp và cầu (Bridges & Articulation Points)
+category: Lý thuyết đồ thị
+description: Tìm cạnh cầu và đỉnh khớp bằng một lượt DFS với mảng disc/low — minh họa trực quan việc cập nhật low-link và tô sáng các cạnh cầu.
+---
+
+## Định nghĩa
+
+- **Cạnh cầu (bridge)**: cạnh mà xóa nó đi thì đồ thị **tách thành 2 phần**.
+- **Đỉnh khớp (articulation point)**: đỉnh mà xóa nó đi thì số thành phần liên
+  thông **tăng**.
+
+Cả hai tìm được trong **một lượt DFS O(V + E)** bằng hai mảng:
+
+- `disc[u]`: thứ tự đỉnh u được vào DFS.
+- `low[u]`: disc nhỏ nhất chạm được từ cây con gốc u (qua tối đa 1 cạnh ngược).
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Đồ thị 6 đỉnh: (0,1) (1,2) (1,3) (3,4) (4,0) (4,5) | Tìm mọi cạnh cầu |
+
+**Output mong đợi:**
+
+```text
+Cạnh cầu: (4, 5)
+```
+
+## Ý tưởng
+
+```text
+dfs(u, cha):
+    disc[u] = low[u] = ++timer
+    với v kề u, v != cha:
+        nếu v đã thăm (cạnh ngược): low[u] = min(low[u], disc[v])
+        else: dfs(v, u)
+              low[u] = min(low[u], low[v])
+              nếu low[v] > disc[u]: cạnh (u, v) là CẦU
+```
+
+Ý nghĩa `low[v] > disc[u]`: từ cây con của v **không có đường ngược nào** về
+đỉnh u hoặc tổ tiên của u — xóa cạnh (u,v) là tách đôi:
+
+<GraphVisualizer algorithm="bridges" height={300} />
+
+Ba điểm đáng nhớ:
+
+1. **Đỉnh khớp** với cùng mảng: u là khớp nếu u là gốc DFS có ≥ 2 con, hoặc có
+   con v với `low[v] ≥ disc[u]` (chú ý dấu ≥ thay vì >).
+2. **Chỉ bỏ cạnh tới cha một lần** (`v != pe` với pe là cạnh vừa đi tới) — bỏ
+   theo **đỉnh cha** sẽ sai với đa cạnh.
+3. Ứng dụng: kiểm tra mạng lưới "không có điểm gãy duy nhất", bài thuật toán
+   Tarjan trên đường viền.
+
+## Kết quả (Output)
+
+DFS từ 0: 0→1→2 (nhánh cụt), quay lại 1, đi 3→4, từ 4 có cạnh ngược về 0
+⇒ low[4] = disc[0] = 0; quay lên 1: low[1] = min(1, low[4]) = 0. Xét từng
+cạnh: (4,5) — 5 là lá, low[5] = disc[5] > disc[4] ⇒ **cầu**. Còn lại mọi cạnh
+nằm trên chu trình 0→1→3→4→0 hoặc có đường ngược ⇒ không phải cầu. Kết quả
+đúng 1 cạnh cầu (4, 5) — nhìn hình thấy cạnh này là "chiếc cầu treo" nối đỉnh 5
+với phần còn lại: gỡ ra, đỉnh 5 cô lập.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int timer = 0;
+vector<vector<int>> adj;
+vector<int> disc_, low_;
+vector<pair<int,int>> bridges;
+
+void dfs(int u, int pe) {          // pe = cạnh tới u (tránh cạnh ngược đa cạnh)
+    disc_[u] = low_[u] = ++timer;
+    for (int v : adj[u]) {
+        if (v == pe) continue;
+        if (disc_[v] != 0) low_[u] = min(low_[u], disc_[v]);
+        else {
+            dfs(v, u);
+            low_[u] = min(low_[u], low_[v]);
+            if (low_[v] > disc_[u]) bridges.push_back({u, v});
+        }
+    }
+}
+
+int main() {
+    int n = 6;
+    adj.assign(n, {});
+    disc_.assign(n, 0); low_.assign(n, 0);
+    for (auto [u, v] : vector<pair<int,int>>{{0,1},{1,2},{1,3},{3,4},{4,0},{4,5}}) {
+        adj[u].push_back(v); adj[v].push_back(u);
+    }
+    dfs(0, -1);
+    for (auto [u, v] : bridges) cout << u << ' ' << v << '\n';   // 4 5
+    return 0;
+}
+```
+
+```python
+import sys
+sys.setrecursionlimit(10**6)
+
+def bridges_dfs(adj, n):
+    disc = [0] * n
+    low = [0] * n
+    timer = [0]
+    res = []
+    def dfs(u, pe):
+        timer[0] += 1
+        disc[u] = low[u] = timer[0]
+        for v in adj[u]:
+            if v == pe: continue
+            if disc[v]:
+                low[u] = min(low[u], disc[v])
+            else:
+                dfs(v, u)
+                low[u] = min(low[u], low[v])
+                if low[v] > disc[u]:
+                    res.append((u, v))
+    dfs(0, -1)
+    return res
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Bridges](https://cses.fi/problemset/task/1683) | CSES | Cạnh cầu chuẩn |
+| [Round Trip](https://cses.fi/problemset/task/1669) | CSES | DFS tìm chu trình |
+| [Police Stations](https://oj.vnoi.info/problem/police) | VNOJ | Cầu + cây khung |
+
+## Đọc thêm
+
+- [Cây DFS](https://vnoi.info/wiki/algo/graph-theory/Depth-First-Search-Tree.md)
+  trên VNOI Wiki — nguồn đối chiếu của bài này, có cả đỉnh khớp.

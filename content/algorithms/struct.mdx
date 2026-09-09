@@ -1,0 +1,126 @@
+---
+title: Struct — dữ liệu tự định nghĩa
+category: Kỹ năng ngôn ngữ & Nền tảng
+description: Struct trong C++ — nhóm nhiều trường dữ liệu thành một kiểu mới, sắp xếp danh sách struct theo tiêu chí riêng, viết code sạch cho bài có nhiều thuộc tính.
+---
+
+## Định nghĩa
+
+**Struct** cho phép gộp nhiều biến liên quan thành **một kiểu dữ liệu mới**:
+
+```cpp
+struct Student {
+    string name;
+    int id;
+    double gpa;
+};
+```
+
+Mỗi biến `Student s` có đủ ba trường. Trong thi, struct dùng khi dữ liệu có
+**nhiều thuộc tính gắn bó** (điểm + tên, toạ độ x/y, cạnh đồ thị u/v/w...) —
+tránh rải 3 mảng song song rồi lệch chỉ số.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| 3 học sinh: `An id=2 score=8`, `Binh id=1 score=9`, `Chi id=3 score=8` | Sắp xếp theo điểm giảm, id tăng khi bằng điểm |
+
+**Output mong đợi:**
+
+```text
+1 Binh 9
+2 An 8
+3 Chi 8
+```
+
+## Ý tưởng
+
+Danh sách struct sắp xếp được bằng comparator riêng:
+
+```text
+sắp xếp mảng students theo gpa giảm dần:
+    sort(students, tie-breaker: gpa giảm, rồi id tăng)
+```
+
+Thao tác trên struct vẫn duyệt mảng như thường — mỗi ô là một "hồ sơ" hoàn chỉnh:
+
+<ArrayVisualizer algorithm="array1d" height={200} />
+
+Chi tiết đáng nhớ:
+
+1. **Comparator**: hàm trả về `true` khi phần tử trái nên đứng **trước** phần tử
+   phải. Viết nhầm dấu `<` thành `<=` với dữ liệu bằng nhau gây lỗi undefined
+   behavior trong `std::sort`.
+2. **Toán tử so sánh**: định nghĩa `bool operator<(const Student& o) const` để
+   struct dùng được trực tiếp trong `sort`, `set`, `priority_queue`.
+3. **Khởi tạo nhanh**: `Student{"An", 1, 3.8}` hoặc thêm constructor — gọn hơn
+   gán từng trường.
+
+## Độ phức tạp
+
+| Thao tác | Chi phí |
+| -------- | ------- |
+| Truy cập `s.field` | O(1) |
+| Sao chép struct | O(số trường) — lớn hơn sao chép số nguyên |
+| Sắp xếp n struct | O(n log n) lần gọi comparator |
+
+## Kết quả (Output)
+
+Sắp xong đúng thứ tự: Binh (9) đứng đầu; An và Chi bằng điểm 8 nên so id — An
+(id 2) trước Chi (id 3). Trên visualizer: mỗi "ô" là một struct hồ sơ hoàn
+chỉnh được ghé thăm khi duyệt; comparator quyết định trật tự — chỉ cần viết
+sai dấu `>` thành `<` là Binh rơi xuống cuối và output đảo hoàn toàn.
+
+## Code mẫu
+
+Sắp xếp học sinh theo điểm giảm dần, bằng id tăng dần khi điểm bằng nhau:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Student {
+    string name;
+    int id, score;
+    bool operator<(const Student& o) const {
+        if (score != o.score) return score > o.score; // điểm giảm
+        return id < o.id;                             // id tăng khi bằng điểm
+    }
+};
+
+int main() {
+    int n; cin >> n;
+    vector<Student> v(n);
+    for (auto& s : v) cin >> s.name >> s.id >> s.score;
+    sort(v.begin(), v.end());
+    for (auto& s : v) cout << s.id << ' ' << s.name << ' ' << s.score << '\n';
+    return 0;
+}
+```
+
+```python
+from dataclasses import dataclass
+
+@dataclass
+class Student:
+    name: str
+    id: int
+    score: int
+
+students = [Student("An", 2, 8), Student("Binh", 1, 9)]
+students.sort(key=lambda s: (-s.score, s.id))  # điểm giảm, id tăng
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Sort Students (mẫu)](https://cses.fi/problemset/task/1619) | CSES | Struct + sắp xếp theo 2 tiêu chí |
+| [Movie Festival](https://cses.fi/problemset/task/1629) | CSES | Struct start/end + greedy |
+| [Restaurant Customers](https://cses.fi/problemset/task/1619) | CSES | Cặp thời gian + loại sự kiện |
+
+## Đọc thêm
+
+- Kết hợp bài này với [Mảng cộng dồn](/algorithms/prefix-sum) khi struct cần
+  dựng mảng cộng dồn trên từng trường số.

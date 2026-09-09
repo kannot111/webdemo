@@ -1,0 +1,98 @@
+---
+title: Sàng Eratosthenes
+category: Lý thuyết số & Toán học
+description: Sàng nguyên tố Eratosthenes — gạch bội của từng số nguyên tố, chỉ còn số nguyên tố; minh họa trực quan từng bước gạch trên dãy số.
+---
+
+## Định nghĩa
+
+**Sàng Eratosthenes** liệt kê mọi số nguyên tố ≤ N trong O(N log log N): bắt đầu
+coi mọi số ≥ 2 là nguyên tố, với mỗi số nguyên tố p, gạch các bội p², p²+p,
+p²+2p... (bắt đầu từ p² vì bội nhỏ hơn đã bị gạch bởi ước nhỏ hơn).
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| `N = 50` | Tìm mọi số nguyên tố ≤ 50 |
+
+**Output mong đợi:**
+
+```text
+2 3 5 7 11 13 17 19 23 29 31 37 41 43 47   (15 số nguyên tố)
+```
+
+## Ý tưởng
+
+```text
+isComposite[0..N] = false
+for p = 2 .. √N:
+    nếu isComposite[p] = false:          // p là nguyên tố
+        for m = p², p²+p, ... ≤ N: isComposite[m] = true
+```
+
+Xem minh họa: ô xanh là số nguyên tố vừa phát hiện, ô xám đậm là bội bị gạch
+ở bước đó:
+
+<ArrayVisualizer algorithm="sieve" height={230} />
+
+Ba điểm đáng nhớ:
+
+1. **Bắt đầu gạch từ p²** — mọi bội p·k với k < p đã bị gạch bởi ước của k.
+2. Chỉ cần lặp p tới **√N** — mọi hợp số ≤ N có ước nguyên tố ≤ √N.
+3. **Phân tích thừa số nhanh**: lưu `smallestFactor[v]` khi gạch ⇒ phân tích mọi
+   số ≤ N trong O(log v) thay vì thử chia O(√v).
+
+## Kết quả (Output)
+
+Số còn lại sau khi gạch hết: 2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41,
+43, 47 — đúng 15 số nguyên tố ≤ 50. Trực quan cho thấy vì sao mỗi hợp số bị gạch
+đúng một lần **bởi ước nguyên tố nhỏ nhất của nó** (ví dụ 12 bị gạch bởi 2 chứ
+không phải 3): tổng công việc = N·(1/2 + 1/3 + 1/5 + ...) = N log log N — gần
+tuyến tính, N = 10⁷ vẫn nhẹ.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    const int N = 50;
+    vector<bool> comp(N + 1, false);
+    vector<int> primes;
+    for (int p = 2; p * p <= N; p++)
+        if (!comp[p])
+            for (long long m = 1LL * p * p; m <= N; m += p) comp[m] = true;
+    for (int i = 2; i <= N; i++)
+        if (!comp[i]) primes.push_back(i);
+    for (int x : primes) cout << x << ' ';
+    cout << '\n' << primes.size() << '\n';
+    return 0;
+}
+```
+
+```python
+N = 50
+comp = [False] * (N + 1)
+primes = []
+for p in range(2, int(N**0.5) + 1):
+    if not comp[p]:
+        for m in range(p * p, N + 1, p):
+            comp[m] = True
+primes = [i for i in range(2, N + 1) if not comp[i]]
+print(*primes)
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Counting Divisors](https://cses.fi/problemset/task/1713) | CSES | Sàng + phân tích |
+| [Common Divisors](https://cses.fi/problemset/task/1081) | CSES | ước chung lớn nhất của tập |
+| [Prime Matrix](https://codeforces.com/problemset/problem/271/B) | Codeforces | Sàng + khoảng cách tới nguyên tố |
+
+## Đọc thêm
+
+- [Sàng số nguyên tố](https://vnoi.info/wiki/algo/algebra/prime_sieve.md) trên
+  VNOI Wiki — nguồn đối chiếu của bài này, có sàng tuyến tính O(N).

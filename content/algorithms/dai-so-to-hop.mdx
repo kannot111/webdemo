@@ -1,0 +1,105 @@
+---
+title: Đại số tổ hợp
+category: Lý thuyết số & Toán học
+description: Tam giác Pascal và công thức C(n, k) — dựng bảng tổ hợp bằng quy nạp C(n,k) = C(n-1,k-1) + C(n-1,k), nền tảng của mọi bài đếm.
+---
+
+## Định nghĩa
+
+**C(n, k)** = số cách chọn k phần tử từ n phần tử (không thứ tự, không lặp):
+
+```text
+C(n, k) = n! / (k! · (n−k)!)
+```
+
+**Tam giác Pascal** dựng C(n, k) bằng quy nạp — mỗi ô là tổng hai ô phía trên:
+
+```text
+C(n, k) = C(n−1, k−1) + C(n−1, k)
+C(n, 0) = C(n, n) = 1
+```
+
+Ý nghĩa của quy nạp: xét phần tử cuối — **không chọn** nó (chọn k từ n−1) hoặc
+**chọn** nó (chọn k−1 từ n−1).
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| `n = 6` | Dựng tam giác Pascal 6 hàng |
+
+**Output mong đợi:**
+
+```text
+Hàng 0: 1
+Hàng 1: 1 1
+Hàng 2: 1 2 1
+Hàng 3: 1 3 3 1
+Hàng 4: 1 4 6 4 1
+Hàng 5: 1 5 10 10 5 1
+```
+
+## Ý tưởng
+
+Dựng hàng 0 → hàng n−1, mỗi hàng tính từ hàng trước:
+
+<MatrixVisualizer algorithm="pascal" height={260} />
+
+Ba điểm đáng nhớ:
+
+1. **Bảng C[n][k] dùng chung mọi bài**: dựng một lần O(n²) mod p, trả lời C(n, k)
+   O(1) — chuẩn bị trước khi vào thi.
+2. **Mod số nguyên tố p**: phép chia thành phép nhân nghịch đảo — nhưng với bảng
+   Pascal chỉ cần cộng, không cần nghịch đảo, p nào cũng được.
+3. **Số Catalan**: C(2n, n)/(n+1) — đếm dãy ngoặc đúng, cách đi trên lưới không
+   vượt đường chéo.
+
+## Kết quả (Output)
+
+Hàng 5 = `1 5 10 10 5 1` — đối chiếu trực quan: ô 10 giữa hàng 4 = 4 + 6 (hai ô
+hàng 3), ô 10 hàng 5 = 4 + 6 (hai ô hàng 4). Kiểm tra công thức: C(5, 2) = 10
+= 5·4/2 — đúng. Hàng n cũng là **hệ số của (a+b)ⁿ** (định lý nhị thức):
+(a+b)⁵ = a⁵ + 5a⁴b + 10a³b² + 10a²b³ + 5ab⁴ + b⁵.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+const long long MOD = 1e9 + 7;
+
+int main() {
+    const int N = 1000;
+    static long long C[N + 1][N + 1];
+    for (int i = 0; i <= N; i++) {
+        C[i][0] = 1;
+        for (int k = 1; k <= i; k++)
+            C[i][k] = (C[i - 1][k - 1] + C[i - 1][k]) % MOD;
+    }
+    cout << C[5][2] << ' ' << C[1000][500] << '\n';  // 10 và C(1000,500) mod p
+    return 0;
+}
+```
+
+```python
+N = 6
+C = [[0] * (i + 1) for i in range(N)]
+for i in range(N):
+    C[i][0] = C[i][i] = 1
+    for k in range(1, i):
+        C[i][k] = C[i - 1][k - 1] + C[i - 1][k]
+print(*C[5])   # 1 5 10 10 5 1
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Binomial Coefficients](https://cses.fi/problemset/task/1079) | CSES | Bảng C(n,k) mod p |
+| [Distributing Apples](https://cses.fi/problemset/task/1716) | CSES | Stars and bars |
+| [Christmas Party](https://cses.fi/problemset/task/1617) | CSES | Đếm lệch (derangement) |
+
+## Đọc thêm
+
+- [Toán tổ hợp](https://vnoi.info/wiki/algo/algebra/nCk.md) trên VNOI Wiki —
+  nguồn đối chiếu của bài này.

@@ -1,0 +1,30 @@
+{
+  "name": "so-tay-thuat-toan",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "index": "node scripts/build-search-index.mjs",
+    "build:static": "cross-env STATIC_EXPORT=1 next build",
+    "deploy:check": "npm run build && npm run build:static && node scripts/sanity-generators.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^3.0.0",
+    "cytoscape": "^3.34.3",
+    "next": "^15.3.3",
+    "next-mdx-remote": "^5.0.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "remark-gfm": "^4.0.1"
+  },
+  "devDependencies": {
+    "@mdx-js/loader": "^3.1.0",
+    "@mdx-js/react": "^3.1.0",
+    "@next/mdx": "^15.3.3",
+    "@types/mdx": "^2.0.13",
+    "cross-env": "^7.0.3"
+  }
+}

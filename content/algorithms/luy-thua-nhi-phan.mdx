@@ -1,0 +1,112 @@
+---
+title: Luỹ thừa nhị phân
+category: Lý thuyết số & Toán học
+description: Luỹ thừa nhị phân — tính a^n trong O(log n) phép nhân nhờ biểu diễn n dưới nhị phân; minh họa từng bit của mũ và giá trị result, base.
+---
+
+## Định nghĩa
+
+Tính `a^n` bằng cách nhân dồn các luỹ thừa `a^(2^k)` tương ứng với **các bit
+bật của n**:
+
+```text
+a^13 = a^(1101₂) = a^8 · a^4 · a^1
+```
+
+Chỉ cần log n lần "bình phương cơ số" + tối đa log n lần nhân vào kết quả
+— thay vì n−1 phép nhân.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| `a = 3, n = 13` | Tính 3¹³ |
+
+**Output mong đợi:**
+
+```text
+3^13 = 1594323
+(13 = 1101₂ ⇒ 3^13 = 3^8 · 3^4 · 3^1 = 6561 · 81 · 3)
+```
+
+## Ý tưởng
+
+```text
+result = 1, base = a, exp = n
+while exp > 0:
+    nếu bit cuối của exp = 1: result *= base
+    exp >>= 1
+    nếu exp > 0: base *= base       // 3 → 9 → 81 → 6561
+```
+
+Xem minh họa: ba giá trị [result, base, exp] thay đổi qua từng vòng — chú ý
+mỗi lần dịch bit, base bình phương một lần:
+
+<ArrayVisualizer algorithm="binPow" height={210} />
+
+Ba điểm đáng nhớ:
+
+1. **Làm modulo** trong thi: `result = result * base % MOD` — vẫn O(log n), đây
+   là công cụ bắt buộc của mọi bài "đếm số cách" (mod 10⁹+7).
+2. **Nhân Ấn Độ** (nhân hai số lớn mod p): thay phép nhân bằng O(log) phép cộng
+   — dùng khi a·b tràn 64-bit.
+3. Cẩn thận `pow()` số thực của thư viện khi cần mod — luôn tự viết bản nhị phân.
+
+## Kết quả (Output)
+
+13 = `1101₂`. Chạy vòng lặp: bit 1 (LSB) ⇒ result = 1·3 = 3, base 3→9; bit 0 ⇒
+bỏ, base 9→81; bit 1 ⇒ result = 3·81 = 243, base 81→6561; bit 1 ⇒ result =
+243·6561 = **1594323**. Đúng cấu trúc 3¹³ = 3¹·3⁴·3⁸ — mỗi bit bật của 13
+tương ứng một lần nhân result. So sánh: cách nhân dần tốn 12 phép nhân, cách
+này chỉ tốn 3 nhân result + 3 bình phương = 6 phép nhân; với n = 10⁹ là 30 so
+với 10⁹.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+const long long MOD = 1e9 + 7;
+
+long long binPow(long long a, long long n, long long mod = MOD) {
+    long long res = 1;
+    while (n > 0) {
+        if (n & 1) res = res * a % mod;
+        a = a * a % mod;
+        n >>= 1;
+    }
+    return res;
+}
+
+int main() {
+    cout << binPow(3, 13, (long long)1e18) << '\n';   // 1594323
+    cout << binPow(2, 100) << '\n';                    // 2^100 mod 1e9+7
+    return 0;
+}
+```
+
+```python
+def bin_pow(a, n, mod):
+    res = 1
+    while n > 0:
+        if n & 1:
+            res = res * a % mod
+        a = a * a % mod
+        n >>= 1
+    return res
+
+print(bin_pow(3, 13, 10**18))   # 1594323
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Exponentiation](https://cses.fi/problemset/task/1095) | CSES | Binpow chuẩn |
+| [Exponentiation II](https://cses.fi/problemset/task/1712) | CSES | Luỹ thừa lồng nhau |
+| [Power](https://oj.vnoi.info/problem/power) | VNOJ | Chặt nhị phân + luỹ thừa |
+
+## Đọc thêm
+
+- [Luỹ thừa nhị phân](https://vnoi.info/wiki/algo/algebra/binary_exponentation.md)
+  trên VNOI Wiki — nguồn đối chiếu của bài này.

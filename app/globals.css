@@ -1,0 +1,113 @@
+:root {
+  --font-sans: 'Segoe UI', 'Helvetica Neue', Arial, 'Noto Sans', sans-serif;
+  --font-mono: 'Cascadia Mono', Consolas, 'SF Mono', Menlo, 'Courier New', monospace;
+
+  --bg: #ffffff;
+  --bg-soft: #f7f8f9;
+  --border: #e3e6ea;
+  --border-strong: #c9ced5;
+  --text: #20262e;
+  --text-soft: #5b6572;
+  --text-faint: #8a929c;
+
+  /* Một accent duy nhất cho toàn site: xanh dương đậm.
+     Dùng cho link, điểm nhấn UI và trạng thái highlight của visualizer
+     (visualizer dùng cùng họ màu, các sắc độ nhạt/t blend từ accent). */
+  --accent: #1e56a0;
+  --accent-soft: #5b8fd4;
+  --accent-faint: #e8eef7;
+
+  --code-bg: #f2f4f6;
+  --content-width: 780px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+button {
+  font-family: inherit;
+}
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  line-height: 1.65;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px 18px;
+  overflow-x: auto;
+}
+
+pre code {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: inherit;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  line-height: 1.3;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  color: var(--text);
+}
+
+::selection {
+  background: var(--accent-faint);
+}
+
+/* Trang 404 */
+.notfound {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 96px 24px;
+}
+
+.notfound h1 {
+  font-size: 1.6rem;
+  margin-bottom: 10px;
+}
+
+.notfound p {
+  color: var(--text-soft);
+}
+

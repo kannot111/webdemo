@@ -1,0 +1,177 @@
+---
+title: Tìm kiếm nhị phân
+category: Kỹ thuật cơ bản
+description: Binary Search — chia đôi không gian tìm kiếm sau mỗi bước nhờ tính đơn điệu, minh họa trực quan việc loại từng nửa đoạn ngay trong web.
+---
+
+## Định nghĩa
+
+Tìm kiếm nhị phân (chặt nhị phân) là kỹ thuật tìm giá trị thỏa mãn một điều kiện
+trên **không gian tìm kiếm đơn điệu**: nếu một phần tử "thỏa mãn" thì mọi phần tử
+"phía sau" nó (theo chiều đơn điệu) cũng thỏa mãn, và ngược lại. Nhờ tính chất
+này, sau mỗi lần xét một phần tử giữa, ta có thể **loại bỏ an toàn một nửa**
+không gian tìm kiếm mà không sợ làm mất nghiệm.
+
+Hai dạng dùng nhiều nhất trong thi:
+
+1. **Tìm trên mảng đã sắp**: vị trí của giá trị `x` trong `a[0..n-1]` tăng dần.
+2. **Chặt nhị phân kết quả**: tìm giá trị nhỏ nhất của `x` sao cho hàm kiểm tra
+   `check(x)` trả về đúng, khi `check` đơn điệu (sai…sai, đúng…đúng).
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Mảng đã sắp `[2, 5, 8, 12, 19, 23, 31, 40, 47]`, tìm `x = 23` | Vị trí của 23 trong mảng |
+| Cùng mảng, tìm `x = 9` | Trường hợp KHÔNG có trong mảng |
+
+**Output mong đợi:**
+
+```text
+x = 23 → vị trí 5 (0-based; 23 là ô thứ 6 của mảng)
+x = 9  → -1 (không tìm thấy, sau ~4 bước so sánh)
+```
+
+## Ý tưởng
+
+Giả sử cần tìm `x` trong dãy tăng dần. Giữ hai biến `lo`, `hi` là hai đầu đoạn
+khả dĩ. Mỗi vòng:
+
+```text
+mid = (lo + hi) / 2        // phần tử giữa
+nếu a[mid] == x  → tìm thấy, dừng
+nếu a[mid] <  x  → mọi phần tử từ lo tới mid đều < x ⇒ lo = mid + 1
+nếu a[mid] >  x  → mọi phần tử từ mid tới hi đều > x ⇒ hi = mid - 1
+```
+
+Điểm mấu chốt cần tin tưởng: khi bỏ đi một nửa, ta **không thể lỡ mất nghiệm**,
+vì đã chứng minh được nửa đó chắc chắn không chứa `x`. Không gian tìm kiếm
+giảm theo cấp số nhân: n → n/2 → n/4 … nên chỉ cần O(log n) bước.
+
+Xem minh họa: ô xanh đậm là `mid` đang xét, các ô xanh nhạt là phần tử
+**đã bị loại vĩnh viễn**. Đoạn còn lại (màu xám đậm) co nhanh tới một ô.
+
+<ArrayVisualizer algorithm="binarySearch" height={260} />
+
+Ba chi tiết đáng chú ý khi xem:
+
+1. Mỗi lần so sánh, đúng một nửa đoạn bị đánh dấu loại — kể cả khi `x` không có
+   trong dãy, thuật toán vẫn dừng sau ⌈log₂ n⌉ + 1 bước (kết luận "không có").
+2. `mid` lấy `(lo + hi) >> 1` nằm về phía trái; với cận lớn cần để ý tràn số
+   (dùng `lo + (hi - lo) / 2` khi `lo + hi` có thể vượt giới hạn kiểu số).
+3. Khi chuyển sang chặt nhị phân kết quả, "mảng" trở thành tập giá trị
+   `[minAns..maxAns]`, và "so sánh với x" trở thành lời gọi `check(mid)`.
+
+Dạng chặt nhị phân trên đoạn `[lo..hi]` tìm giá trị nhỏ nhất thỏa `check`:
+
+```text
+while lo < hi:
+    mid = (lo + hi) / 2
+    nếu check(mid): hi = mid      // mid có thể là đáp án — giữ lại
+    else:           lo = mid + 1  // mid chắc chắn sai — loại hẳn
+// lo == hi: giá trị nhỏ nhất thỏa mãn
+```
+
+## Độ phức tạp
+
+| Trường hợp | Số bước so sánh | Ghi chú |
+| ---------- | --------------- | ------- |
+| Tốt nhất | O(1) | Phần tử giữa trúng ngay |
+| Trung bình / xấu nhất | O(log n) | Không gian tìm kiếm giảm một nửa mỗi bước |
+| Bộ nhớ | O(1) | Chỉ cần hai biến `lo`, `hi` |
+
+Ví dụ n = 10⁶ chỉ cần khoảng 20 lần so sánh — đây là lý do "mọi bài tìm kiếm
+trên dữ liệu lớn đều phải nghĩ đến nhị phân".
+
+## Kết quả (Output)
+
+Chạy trực quan với x = 23: mid đầu = ô 4 (giá trị 19) → 19 < 23 ⇒ loại nửa trái
+→ mid ô 6 (31) → 31 > 23 ⇒ loại nửa phải → mid ô 5 (23) — tìm thấy sau đúng
+3 phép so sánh (log₂9 ≈ 3,17). Với x = 9: sau ~4 bước đoạn còn 1 ô, giá trị
+không khớp ⇒ trả về **-1**. Trực quan: các ô xanh nhạt (đã loại) không bao giờ
+được xét lại — không gian tìm kiếm co n → n/2 → n/4...; đó là toàn bộ ý nghĩa
+của O(log n).
+
+## Code mẫu
+
+C++ — tìm `x` trong mảng đã sắp:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n; long long x;
+    cin >> n >> x;
+    vector<long long> a(n);
+    for (auto &v : a) cin >> v;
+
+    int lo = 0, hi = n - 1, pos = -1;
+    while (lo <= hi) {
+        int mid = lo + (hi - lo) / 2;   // tránh tràn số khi lo + hi lớn
+        if (a[mid] == x) { pos = mid; break; }
+        else if (a[mid] < x) lo = mid + 1;
+        else hi = mid - 1;
+    }
+    cout << pos << '\n';                // -1 nếu không tìm thấy
+    return 0;
+}
+```
+
+C++ — chặt nhị phân kết quả (mẫu "vận chuyển trong d ngày"):
+
+```cpp
+// check(cap): liệu chở hết hàng với sức chứa cap trong `days` ngày được không?
+bool check(long long cap, const vector<long long>& w, int days) {
+    long long cur = 0; --days;
+    for (long long x : w) {
+        if (cur + x <= cap) cur += x;
+        else { --days; cur = x; }
+    }
+    return days >= 0;
+}
+
+// check đơn điệu: cap càng lớn càng "dễ" đúng → tìm cap nhỏ nhất
+long long lo = *max_element(w.begin(), w.end());  // cận dưới hợp lệ
+long long hi = accumulate(w.begin(), w.end(), 0LL);
+while (lo < hi) {
+    long long mid = lo + (hi - lo) / 2;
+    if (check(mid, w, days)) hi = mid; else lo = mid + 1;
+}
+// lo là sức chứa tối thiểu
+```
+
+Python:
+
+```python
+def binary_search(a, x):
+    lo, hi = 0, len(a) - 1
+    while lo <= hi:
+        mid = (lo + hi) // 2
+        if a[mid] == x:
+            return mid
+        if a[mid] < x:
+            lo = mid + 1
+        else:
+            hi = mid - 1
+    return -1
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Power](https://oj.vnoi.info/problem/power) | VNOJ | Chặt nhị phân trên giá trị |
+| [ACOW — USACO21 Open Silver](https://oj.vnoi.info/problem/usaco21os_acow) | VNOJ | Tìm kiếm nhị phân trên mảng đã sắp |
+| [Wooden Sticks](https://oj.vnoi.info/problem/mstick) | VNOJ | Chặt nhị phân kết quả |
+| [c11cave](https://oj.vnoi.info/problem/c11cave) | VNOJ | Nhận diện tính đơn điệu ẩn |
+| [Sushi for Two](https://codeforces.com/problemset/problem/1138/A) | Codeforces | Hai con trỏ kết hợp nhị phân |
+| [Increase and Copy](https://codeforces.com/problemset/problem/1426/C) | Codeforces | Chặt nhị phân trên đáp án |
+| [Prime Matrix](https://codeforces.com/problemset/problem/271/B) | Codeforces | Nhị phân + sàng nguyên tố |
+
+## Đọc thêm
+
+- Bài [Tìm kiếm nhị phân](https://vnoi.info/wiki/algo/basic/Binary-Search) trên
+  VNOI Wiki (dịch từ Topcoder, biên soạn bởi Nguyễn Nhật Minh Khôi) — nguồn
+  đối chiếu thuật ngữ của bài này, có phần xử lý pattern `(false…false, true…true)`
+  và tìm kiếm nhị phân trên số thực rất đáng đọc.

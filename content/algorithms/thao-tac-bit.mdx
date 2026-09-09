@@ -1,0 +1,109 @@
+---
+title: Thao tác bit cơ bản
+category: Kỹ năng ngôn ngữ & Nền tảng
+description: Các phép toán bit AND, OR, XOR, NOT và dịch bit — công cụ cho bitmask, QHD bitmask và tối ưu nhanh gọn trong thi HSG.
+---
+
+## Định nghĩa
+
+Số nguyên trong máy tính là chuỗi bit. **Thao tác bit** làm việc trực tiếp trên
+từng bit — nhanh hơn phép số học và là nền tảng của bitmask (lưu tập con bằng
+một số nguyên).
+
+| Phép | C++ | Ý nghĩa |
+| ---- | --- | ------- |
+| AND | `a & b` | Bit bật khi **cả hai** bật |
+| OR | `a \| b` | Bit bật khi **ít nhất một** bật |
+| XOR | `a ^ b` | Bit bật khi **khác nhau** |
+| NOT | `~a` | Đảo mọi bit |
+| Dịch trái | `a << k` | Nhân 2ᵏ |
+| Dịch phải | `a >> k` | Chia lấy nguyên 2ᵏ |
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| `x = 22` (nhị phân `00010110`) | Chuỗi thao tác bit trên 8 bit |
+| Chuỗi: bật bit 1, tắt bit 4, đảo bit 0, kiểm tra bit 3, dịch trái, dịch phải 2 | Thao tác lần lượt |
+
+**Output mong đợi:**
+
+```text
+22 → 24 → 8 → 9 → (bit 3 = 1) → 18 → 4
+```
+
+## Ý tưởng — bộ thao tác cắm/rút bit chuẩn
+
+Với bit thứ `k` (đánh số từ 0) của số `x`:
+
+```text
+BẬT bit k:     x |=  (1 << k)
+TẮT bit k:     x &= ~(1 << k)
+ĐẢO bit k:     x ^=  (1 << k)
+KIỂM TRA bit k: (x >> k) & 1
+```
+
+Xem minh họa: số 8-bit chạy qua chuỗi thao tác — bit được tác động tô đậm ở
+mỗi bước:
+
+<ArrayVisualizer algorithm="bitOps" height={200} />
+
+Ba kỹ thuật phổ biến trong thi:
+
+1. **Lưu tập con bằng bitmask**: `mask = 0b0101` nghĩa là tập {0, 2}. Duyệt tập
+   con của tập S: `for (int sub = S; sub; sub = (sub - 1) & S)`.
+2. **`x & (-x)` lấy bit thấp nhất đang bật** — trái tim của cây Fenwick.
+3. **Đếm bit bật**: `__builtin_popcount(x)` (C++) — thay vì đếm vòng lặp.
+
+## Độ phức tạp
+
+| Thao tác | Chi phí |
+| -------- | ------- |
+| Mọi phép `&`, `^`, `<<`, `>>` | O(1) |
+| Duyệt tập con của tập n phần tử | O(2ⁿ) |
+| Đếm bit bật bằng vòng lặp | O(log n) |
+
+## Kết quả (Output)
+
+Đọc trực quan từng bước trên dải 8 bit: 22 = `00010110` → bật bit 1 ⇒ 24 =
+`00011000` → tắt bit 4 ⇒ 8 = `00001000` → đảo bit 0 ⇒ 9 = `00001001` → bit 3 =
+1 ⇒ dịch trái ⇒ 18 = `00010010` → dịch phải 2 ⇒ **4** = `00000100`. Mỗi bước
+đúng 1–2 bit thay đổi — phép bit nhanh vì chỉ đụng đúng bit đích, không cần
+phép chia lấy dư hay các phép số học khác.
+
+## Code mẫu
+
+Đếm xem tập A có là tập con của tập B không, cả hai biểu diễn bằng bitmask:
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int A = 0b0101;  // tập {0, 2}
+    int B = 0b0111;  // tập {0, 1, 2}
+    // A ⊆ B ⟺ (A & B) == A
+    cout << ((A & B) == A ? "A la tap con cua B" : "Khong");
+    cout << '\n' << __builtin_popcount(B) << '\n';  // 3 bit bật
+    return 0;
+}
+```
+
+```python
+A, B = 0b0101, 0b0111
+print("A la tap con cua B" if (A & B) == A else "Khong")
+print(B.bit_count())  # đếm bit bật (Python 3.10+)
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Elevator Rides](https://cses.fi/problemset/task/1653) | CSES | QHD bitmask kinh điển |
+| [Hamiltonian Flights](https://cses.fi/problemset/task/1690) | CSES | Bitmask + đếm đường đi |
+| [Counting Bits](https://leetcode.com/problems/counting-bits/) | LeetCode | Đếm bit cho mọi số |
+
+## Đọc thêm
+
+- [Thao tác bit](https://vnoi.info/wiki/algo/basic/bitwise-operators.md) trên
+  VNOI Wiki — nguồn đối chiếu của bài này.

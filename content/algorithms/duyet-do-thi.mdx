@@ -1,0 +1,121 @@
+---
+title: Duyệt đồ thị (BFS & DFS)
+category: Lý thuyết đồ thị
+description: Hai phép duyệt đồ thị nền tảng — BFS theo lớp tính khoảng cách ít cạnh, DFS đi sâu bằng ngăn xếp; chạy trực quan trên cùng một đồ thị để so sánh.
+---
+
+## Định nghĩa
+
+**Duyệt đồ thị** là thăm mọi đỉnh có thể đến được từ một đỉnh nguồn. Hai cách
+cơ bản:
+
+- **BFS (Breadth-First Search)**: duyệt **theo lớp** — thăm nguồn, rồi các đỉnh
+  cách 1 cạnh, rồi cách 2 cạnh... dùng **hàng đợi**. Cho ngay **khoảng cách ít
+  cạnh nhất** d(u).
+- **DFS (Depth-First Search)**: đi **sâu hết một nhánh** rồi mới quay lại, dùng
+  **ngăn xếp** (hoặc đệ quy). Nền tảng của: thành phần liên thông, chu trình,
+  cạnh cầu, sắp xếp tô pô, cây DFS.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Đồ thị 6 đỉnh: cạnh (0,1) (0,2) (1,2) (1,3) (2,3) (2,4) (3,4) (3,5) (4,5) | Duyệt từ đỉnh 0 |
+
+**Output mong đợi:**
+
+```text
+BFS từ 0: d(0)=0, d(1)=d(2)=1, d(3)=d(4)=2, d(5)=3
+DFS từ 0: thứ tự thăm 0 → 1 → 2 → 3 → 4 → 5
+```
+
+## Ý tưởng
+
+```text
+BFS:  hàng đợi chứa nguồn; mỗi lần lấy u ra, đẩy mọi kề chưa thăm của u
+DFS:  ngăn xếp chứa nguồn; mỗi lần lấy u ra, đẩy mọi kề chưa thăm của u
+```
+
+Chỉ khác **cấu trúc dữ liệu**: hàng đợi cho BFS (vào trước ra trước), ngăn xếp
+cho DFS (vào sau ra trước) — và kết quả duyệt khác hẳn nhau:
+
+<GraphVisualizer algorithm="bfs" height={300} />
+
+Cùng đồ thị, chạy DFS — chú ý thứ tự thăm khác BFS:
+
+<GraphVisualizer algorithm="dfs" height={300} />
+
+Ba điểm đáng nhớ:
+
+1. **Đánh dấu thăm lúc ĐẨY vào** (BFS) để không đỉnh nào lặp trong hàng đợi;
+   đánh dấu lúc lấy ra với DFS khử đệ quy.
+2. Đồ thị **có thể không liên thông** — phải chạy BFS/DFS từ mỗi thành phần
+   chưa thăm.
+3. BFS trên **đồ thị có trọng số** KHÔNG cho đường ngắn nhất (trọng số khác 1) —
+   đó là việc của Dijkstra.
+
+## Kết quả (Output)
+
+BFS: nhãn mỗi đỉnh là `d=` — đỉnh 1, 2 kề nguồn nhận d=1; đỉnh 3, 4 chỉ kề các
+đỉnh lớp 1 nên d=2; đỉnh 5 kề 3/4 nên d=3. Đây là **số cạnh ít nhất** từ 0 —
+không đường nào đến 5 ngắn hơn 3 cạnh vì BFS thăm đúng theo lớp, đỉnh ở lớp 3
+chỉ có thể phát hiện từ lớp 2. DFS: đi 0 → 1 → 2 → 3 → 4 → 5 — luôn chui xuống
+sâu nhất trước khi quay lại; đường DFS tìm được không nhất thiết ngắn nhất.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    int n = 6;
+    vector<vector<int>> adj(n);
+    for (auto [u, v] : vector<pair<int,int>>{{0,1},{0,2},{1,2},{1,3},{2,3},{2,4},{3,4},{3,5},{4,5}}) {
+        adj[u].push_back(v); adj[v].push_back(u);
+    }
+    // BFS
+    vector<int> dist(n, -1);
+    queue<int> q;
+    dist[0] = 0; q.push(0);
+    while (!q.empty()) {
+        int u = q.front(); q.pop();
+        for (int v : adj[u]) if (dist[v] == -1) {
+            dist[v] = dist[u] + 1;
+            q.push(v);
+        }
+    }
+    for (int i = 0; i < n; i++) cout << dist[i] << ' ';   // 0 1 1 2 2 3
+    cout << '\n';
+    return 0;
+}
+```
+
+```python
+from collections import deque
+def bfs(adj, src):
+    dist = {src: 0}
+    q = deque([src])
+    while q:
+        u = q.popleft()
+        for v in adj[u]:
+            if v not in dist:
+                dist[v] = dist[u] + 1
+                q.append(v)
+    return dist
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [Counting Rooms](https://cses.fi/problemset/task/1192) | CSES | Đếm thành phần liên thông trên lưới |
+| [Labyrinth](https://cses.fi/problemset/task/1193) | CSES | BFS truy vết đường đi |
+| [Building Teams](https://cses.fi/problemset/task/1668) | CSES | BFS tô màu hai phía |
+| [Message Route](https://cses.fi/problemset/task/1667) | CSES | BFS in đường đi |
+
+## Đọc thêm
+
+- [BFS](https://vnoi.info/wiki/algo/graph-theory/breadth-first-search.md) và
+  [Cây DFS](https://vnoi.info/wiki/algo/graph-theory/Depth-First-Search-Tree.md)
+  trên VNOI Wiki — nguồn đối chiếu của bài này.

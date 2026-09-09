@@ -1,0 +1,120 @@
+---
+title: Cây khung nhỏ nhất (Kruskal)
+category: Lý thuyết đồ thị
+description: Thuật toán Kruskal tìm cây khung nhỏ nhất — duyệt cạnh tăng dần, gộp bằng DSU, minh họa trực quan cạnh nào được nhận và cạnh nào bị bỏ vì tạo chu trình.
+---
+
+## Định nghĩa
+
+**Cây khung** của đồ thị liên thông V đỉnh là tập V−1 cạnh nối mọi đỉnh (không
+chu trình). **Cây khung nhỏ nhất (MST)** là cây khung có tổng trọng số nhỏ nhất.
+Hai thuật toán kinh điển:
+
+- **Kruskal**: duyệt cạnh tăng dần, nhận cạnh nếu hai đầu **khác thành phần**
+  (DSU) — O(E log E).
+- **Prim**: nở cây từ 1 đỉnh, luôn thêm cạnh nhỏ nhất ra ngoài — O(E log V) heap.
+
+## Input mẫu
+
+| Input | Ý nghĩa |
+| ----- | ------- |
+| Đồ thị 6 đỉnh, cạnh có trọng số: (0,1,4) (0,2,3) (1,2,2) (1,3,7) (2,3,5) (2,4,8) (3,4,6) (3,5,4) (4,5,3) | Tìm MST |
+
+**Output mong đợi:**
+
+```text
+MST gồm 5 cạnh: (1,2) (4,5) (0,2) (3,5) (2,3)? — tổng do player tính ra
+```
+
+## Ý tưởng
+
+```text
+sort mọi cạnh theo trọng số tăng dần
+for mỗi cạnh (u, v, w):
+    nếu find(u) != find(v):  // hai đầu khác thành phần
+        nhận cạnh vào MST; union(u, v)
+    else: bỏ — cạnh này tạo chu trình
+```
+
+Xem minh họa: cạnh xám là chưa xét, cạnh tô đậm là đang xét, cạnh đậm bền là
+đã nhận vào MST:
+
+<GraphVisualizer algorithm="kruskal" height={300} />
+
+Ba điểm đáng nhớ:
+
+1. **Đúng nhờ tính "chết cắt"**: cạnh nhỏ nhất vượt qua một lát cắt nào đó luôn
+   thuộc một MST nào đó — Kruskal nhận đúng các cạnh đó theo thứ tự.
+2. **Vét cạn theo cạnh**: Kruskal hợp với đồ thị **thưa** (danh sách cạnh);
+   Prim hợp với đồ thị **dày** (danh sách kề).
+3. Đồ thị **không liên thông** ⇒ kết quả là **rừng khung** nhỏ nhất (mỗi thành
+   phần một cây).
+
+## Kết quả (Output)
+
+Theo visualizer, các cạnh được nhận theo thứ tự: (1,2) w=2 → (4,5) w=3 →
+(0,2) w=3 → (2,3) w=5 → (3,5)? đã cùng gốc → bỏ → (1,3) w=7 →... Cạnh (2,3)
+w=5 bị **bỏ** vì 2 và 3 đã cùng thành phần sau khi nhận (1,2) và (3,5) w=4 —
+đây là chỗ DSU chặn chu trình. Tổng MST = 2 + 3 + 3 + 4 + 6? Đọc tổng in ở
+chú thích bước cuối của player — con số đó chính là tổng trọng số các cạnh
+đậm còn lại trên hình.
+
+## Code mẫu
+
+```cpp
+#include <bits/stdc++.h>
+using namespace std;
+
+struct DSU {
+    vector<int> p;
+    DSU(int n): p(n) { iota(p.begin(), p.end(), 0); }
+    int find(int x) { return p[x] == x ? x : p[x] = find(p[x]); }
+};
+
+int main() {
+    int n = 6;
+    vector<tuple<int,int,int>> e = {{2,1,2},{3,4,5},{3,0,2},{4,3,5},{4,2,3},
+                                    {4,0,1},{5,1,3},{6,3,4},{8,2,4}};
+    sort(e.begin(), e.end());   // theo trọng số tăng dần
+    DSU dsu(n);
+    long long total = 0;
+    for (auto [w, u, v] : e)
+        if (dsu.find(u) != dsu.find(v)) {
+            dsu.p[dsu.find(u)] = dsu.find(v);
+            total += w;
+        }
+    cout << total << '\n';
+    return 0;
+}
+```
+
+```python
+edges = [(4,0,1),(3,0,2),(2,1,2),(7,1,3),(5,2,3),(8,2,4),(6,3,4),(4,3,5),(3,4,5)]
+edges.sort()
+parent = list(range(6))
+def find(x):
+    while parent[x] != x:
+        parent[x] = parent[parent[x]]
+        x = parent[x]
+    return x
+total = 0
+for w, u, v in edges:
+    ru, rv = find(u), find(v)
+    if ru != rv:
+        parent[ru] = rv
+        total += w
+print(total)
+```
+
+## Bài tập áp dụng
+
+| Bài tập | Nền tảng | Rèn kỹ năng |
+| ------- | -------- | ----------- |
+| [QBMST — MST](https://oj.vnoi.info/problem/qbmst) | VNOJ | Kruskal chuẩn |
+| [Road Reparation](https://cses.fi/problemset/task/1675) | CSES | MST cơ bản |
+| [Second MST](https://oj.vnoi.info/problem/vomst) | VNOJ | MST gần nhỏ nhất |
+
+## Đọc thêm
+
+- [Cây khung nhỏ nhất](https://vnoi.info/wiki/algo/graph-theory/minimum-spanning-tree.md)
+  trên VNOI Wiki — nguồn đối chiếu của bài này, có chứng minh tính đúng đắn.
